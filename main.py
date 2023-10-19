@@ -1,8 +1,11 @@
 from typing import Union
-
 from fastapi import FastAPI
+from scheduler.scheduler import job
 
 app = FastAPI()
+
+
+
 
 
 @app.get("/")
