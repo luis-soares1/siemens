@@ -1,109 +1,93 @@
-from typing import List, Optional, Generic, TypeVar
-from pydantic import BaseModel , Field
-from pydantic.generics import GenericModel
+from typing import List, Optional
+from pydantic import BaseModel, Field
 
-T = TypeVar('T')
+# Individual Components
 
-class CoordinatesSchema(BaseModel):
-    coord_id: Optional[int]
-    lon: float
-    lat: float
+class TimezoneSchema(BaseModel):
+    id: Optional[int]
+    shift_seconds: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
+
+class LocationSchema(BaseModel):
+    id: Optional[int]
+    cityname: str
+    country: str
+    timezone: TimezoneSchema
+    sunrise: int
+    sunset: int
+    longitude: float
+    latitude: float
+
+    class Config:
+        from_attributes = True
+        
+
+class WindSchema(BaseModel):
+    id: Optional[int]
+    speed: float
+    deg: int
+    gust: Optional[float]
+
+    class Config:
+        from_attributes = True
+
+class VolumesSchema(BaseModel):
+    id: Optional[int]
+    rain_1h: Optional[float]
+    rain_3h: Optional[float]
+    snow_1h: Optional[float]
+    snow_3h: Optional[float]
+
+    class Config:
+        from_attributes = True
+
+class WeatherMetricsSchema(BaseModel):
+    id: Optional[int]
+    temp: float
+    feels_like: float
+    pressure: float
+    humidity: int
+    visibility: int
+    cloudiness: int
+    wind: WindSchema
+    temp_min: float
+    temp_max: float
+    sea_level: float
+    grnd_level: float
+
+    class Config:
+        from_attributes = True
 
 class WeatherSchema(BaseModel):
-    weather_id: Optional[int]
+    id: Optional[int]
     main: str
     description: str
     icon: str
 
     class Config:
-        orm_mode = True
-
-class MainWeatherDetailsSchema(BaseModel):
-    main_weather_id: Optional[int]
-    temp: float
-    feels_like: float
-    temp_min: float
-    temp_max: float
-    pressure: int
-    humidity: int
+        from_attributes = True
+class CurrentWeatherSchema(BaseModel):
+    id: Optional[int]
+    location: LocationSchema
+    weathers: List[WeatherSchema]   # Note the change here
+    weather_metrics: WeatherMetricsSchema  # Including the metrics directly for a more comprehensive response
+    volume: VolumesSchema
+    dt_calculation: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
-class WindSchema(BaseModel):
-    wind_id: Optional[int]
-    speed: float
-    deg: int
+# Requests 
 
-    class Config:
-        orm_mode = True
+class Request(BaseModel):
+    parameter: Optional[BaseModel]
 
-class CloudsSchema(BaseModel):
-    cloud_id: Optional[int]
-    all: int
+# Responses
 
-    class Config:
-        orm_mode = True
-
-class SystemDetailsSchema(BaseModel):
-    sys_id: Optional[int]
-    type: int
-    id: int
-    country: str
-    sunrise: int
-    sunset: int
-
-    class Config:
-        orm_mode = True
-
-class LocationSchema(BaseModel):
-    location_id: Optional[int]
-    name: str
-    coord_id: int
-    weather_id: int
-    main_weather_id: int
-    wind_id: int
-    cloud_id: int
-    sys_id: int
-    base: str
-    visibility: int
-    dt: int
-    timezone: int
-    cod: int
-
-    class Config:
-        orm_mode = True
-
-class Request(GenericModel, Generic[T]):
-    parameter: Optional[T] = Field(...)
-
-
-class Response(GenericModel, Generic[T]):
+class Response(BaseModel):
     code: str
     status: str
     message: str
-    result: Optional[T]
-    
-class RequestCoordinates(BaseModel):
-    parameter: CoordinatesSchema = Field(...)
-    
-class RequestWeather(BaseModel):
-    parameter: WeatherSchema = Field(...)
-    
-class RequestMainWeatherDetails(BaseModel):
-    parameter: MainWeatherDetailsSchema = Field(...)
-    
-class RequestWind(BaseModel):
-    parameter: WindSchema = Field(...)
-
-class RequestClouds(BaseModel):
-    parameter: CloudsSchema = Field(...)
-    
-class RequestSystemDetails(BaseModel):
-    parameter: CloudsSchema = Field(...)
-    
-class RequestLocation(BaseModel):
-    parameter: CloudsSchema = Field(...)
+    result: Optional[BaseModel]

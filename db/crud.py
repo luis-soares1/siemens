@@ -1,96 +1,96 @@
 from sqlalchemy.orm import Session
-from .models import (Coordinates, Weather, MainWeatherDetails, Wind, Clouds, SystemDetails, Location)
-from .schemas import (CoordinatesSchema, WeatherSchema, MainWeatherDetailsSchema, WindSchema, CloudsSchema, SystemDetailsSchema, LocationSchema)
-
-# CRUD operations for Coordinates
-def get_coordinates(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(Coordinates).offset(skip).limit(limit).all()
-
-def create_coordinates(db: Session, coords: CoordinatesSchema):
-    _coords = Coordinates(**coords.model_dump())
-    db.add(_coords)
-    db.commit()
-    db.refresh(_coords)
-    return _coords
-
-# CRUD operations for Weather
-def get_weather(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(Weather).offset(skip).limit(limit).all()
-
-def create_weather(db: Session, weather: WeatherSchema):
-    _weather = Weather(**weather.model_dump())
-    db.add(_weather)
-    db.commit()
-    db.refresh(_weather)
-    return _weather
-
-# CRUD operations for MainWeatherDetails
-def get_main_weather_details(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(MainWeatherDetails).offset(skip).limit(limit).all()
-
-def create_main_weather_details(db: Session, details: MainWeatherDetailsSchema):
-    _details = MainWeatherDetails(**details.model_dump())
-    db.add(_details)
-    db.commit()
-    db.refresh(_details)
-    return _details
-
-# CRUD operations for Wind
-def get_wind(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(Wind).offset(skip).limit(limit).all()
-
-def create_wind(db: Session, wind: WindSchema):
-    _wind = Wind(**wind.model_dump())
-    db.add(_wind)
-    db.commit()
-    db.refresh(_wind)
-    return _wind
-
-# CRUD operations for Clouds
-def get_clouds(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(Clouds).offset(skip).limit(limit).all()
-
-def create_clouds(db: Session, cloud: CloudsSchema):
-    _cloud = Clouds(**cloud.model_dump())
-    db.add(_cloud)
-    db.commit()
-    db.refresh(_cloud)
-    return _cloud
-
-# CRUD operations for SystemDetails
-def get_system_details(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(SystemDetails).offset(skip).limit(limit).all()
-
-def create_system_details(db: Session, system: SystemDetailsSchema):
-    _system = SystemDetails(**system.model_dump())
-    db.add(_system)
-    db.commit()
-    db.refresh(_system)
-    return _system
+from db.models import (Location, Timezone, Weather, WeatherMetrics, Wind, Volumes, CurrentWeather)
+from db.schemas import (TimezoneSchema, LocationSchema, WeatherMetricsSchema, WeatherSchema, WindSchema, VolumesSchema, CurrentWeatherSchema)
 
 # CRUD operations for Location
-def get_location(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(Location).offset(skip).limit(limit).all()
-
-def get_location_by_id(db: Session, location_id: int):
-    return db.query(Location).filter(Location.location_id == location_id).first()
-
 def create_location(db: Session, location: LocationSchema):
-    _location = Location(**location.model_dump())
+    existing_location = db.query(Location).filter_by(
+        cityname=location['longitude'],
+        country=location['latitude']
+    ).first()
+    if existing_location:
+        return existing_location
+    _location = Location(**location)
     db.add(_location)
     db.commit()
     db.refresh(_location)
     return _location
 
-def remove_location(db: Session, location_id: int):
-    _location = get_location_by_id(db=db, location_id=location_id)
-    db.delete(_location)
-    db.commit()
 
-def update_location(db: Session, location_id: int, location_update: LocationSchema):
-    _location = get_location_by_id(db=db, location_id=location_id)
-    for key, value in location_update.model_dump().items():
-        setattr(_location, key, value)
+# CRUD operations for Timezone
+def create_timezone(db: Session, timezone: TimezoneSchema):
+    existing_timezone = db.query(Timezone).filter_by(shift_seconds=timezone['shift_seconds']).first()
+    if existing_timezone:
+        return existing_timezone
+    _timezone = Timezone(**timezone)
+    db.add(_timezone)
     db.commit()
-    db.refresh(_location)
-    return _location
+    db.refresh(_timezone)
+    return _timezone
+
+
+# CRUD operations for Weather
+def create_weather(db: Session, weather: WeatherSchema):
+    existing_weather = db.query(Weather).filter_by(
+        id=weather['id']
+    ).first()
+    if existing_weather:
+        return existing_weather
+    _weather = Weather(**weather)
+    db.add(_weather)
+    db.commit()
+    db.refresh(_weather)
+    return _weather
+
+# CRUD operations for WeatherMetrics
+def create_weather_metrics(db: Session, weather_metrics: WeatherMetricsSchema):
+    # existing_weather_metrics = db.query(WeatherMetrics).filter_by(main=weather_metrics['main']).first()
+    if False:
+        return existing_weather_metrics
+    _weather_metrics = WeatherMetrics(**weather_metrics)
+    db.add(_weather_metrics)
+    db.commit()
+    db.refresh(_weather_metrics)
+    return _weather_metrics
+
+
+# CRUD operations for Wind
+def create_wind(db: Session, wind: WindSchema):
+    existing_wind = db.query(Wind).filter_by(
+        speed=wind['speed'],
+        deg=wind['deg'],
+        gust=wind.get('gust', None)  # using get in case 'gust' might not always be provided
+    ).first()
+    if existing_wind:
+        return existing_wind
+    _wind = Wind(**wind)
+    db.add(_wind)
+    db.commit()
+    db.refresh(_wind)
+    return _wind
+
+# CRUD operations for Volumes
+def create_volumes(db: Session, volume: VolumesSchema):
+    # Adjust your filter conditions based on unique criteria for Volumes if necessary
+    existing_volume = db.query(Volumes).filter_by(rain_1h=volume.get('rain_1h', None), rain_3h=volume.get('rain_3h', None), snow_1h=volume.get('snow_1h', None), snow_3h=volume.get('snow_3h', None)).first()
+    if existing_volume:
+        return existing_volume
+    _volume = Volumes(**volume)
+    db.add(_volume)
+    db.commit()
+    db.refresh(_volume)
+    return _volume
+
+# CRUD operations for CurrentWeather
+def get_current_weather(db: Session, skip: int = 0, limit: int = 100):
+    return db.query(CurrentWeather).offset(skip).limit(limit).all()
+
+def create_current_weather(db: Session, current_weather: CurrentWeatherSchema):
+    existing_current_weather = db.query(CurrentWeather).filter_by(location_id=current_weather['location_id']).first()
+    if existing_current_weather:
+        return existing_current_weather
+    _current_weather = CurrentWeather(**current_weather)
+    db.add(_current_weather)
+    db.commit()
+    db.refresh(_current_weather)
+    return _current_weather

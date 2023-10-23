@@ -1,0 +1,47 @@
+{
+   "coord":{
+      "lon":-9.1446,
+      "lat":38.7427
+   },
+   "weather":[
+      {
+         "id":500,
+         "main":"Rain",
+         "description":"light rain",
+         "icon":"10d"
+      }
+   ],
+   "base":"stations",
+   "main":{
+      "temp":288.04,
+      "feels_like":287.57,
+      "temp_min":287.62,
+      "temp_max":289.34,
+      "pressure":1005,
+      "humidity":76
+   },
+   "visibility":10000,
+   "wind":{
+      "speed":5.81,
+      "deg":135,
+      "gust":9.39
+   },
+   "rain":{
+      "1h":0.15
+   },
+   "clouds":{
+      "all":40
+   },
+   "dt":1697974878,
+   "sys":{
+      "type":1,
+      "id":6901,
+      "country":"PT",
+      "sunrise":1697957537,
+      "sunset":1697996977
+   },
+   "timezone":3600,
+   "id":6946673,
+   "name":"São Sebastião da Pedreira",
+   "cod":200
+} 
