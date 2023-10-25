@@ -107,3 +107,6 @@ logs/
 # Others
 __pycache__/
 
+# Alembic
+
+alembic/
