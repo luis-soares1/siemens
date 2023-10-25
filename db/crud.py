@@ -5,8 +5,8 @@ from db.schemas import (TimezoneSchema, LocationSchema, WeatherMetricsSchema, We
 # CRUD operations for Location
 def create_location(db: Session, location: LocationSchema):
     existing_location = db.query(Location).filter_by(
-        cityname=location['longitude'],
-        country=location['latitude']
+        longitude=location['longitude'],
+        latitude=location['latitude']
     ).first()
     if existing_location:
         return existing_location
@@ -45,8 +45,8 @@ def create_weather(db: Session, weather: WeatherSchema):
 # CRUD operations for WeatherMetrics
 def create_weather_metrics(db: Session, weather_metrics: WeatherMetricsSchema):
     # existing_weather_metrics = db.query(WeatherMetrics).filter_by(main=weather_metrics['main']).first()
-    if False:
-        return existing_weather_metrics
+    # if False:
+    #     return existing_weather_metrics
     _weather_metrics = WeatherMetrics(**weather_metrics)
     db.add(_weather_metrics)
     db.commit()
@@ -86,9 +86,6 @@ def get_current_weather(db: Session, skip: int = 0, limit: int = 100):
     return db.query(CurrentWeather).offset(skip).limit(limit).all()
 
 def create_current_weather(db: Session, current_weather: CurrentWeatherSchema):
-    existing_current_weather = db.query(CurrentWeather).filter_by(location_id=current_weather['location_id']).first()
-    if existing_current_weather:
-        return existing_current_weather
     _current_weather = CurrentWeather(**current_weather)
     db.add(_current_weather)
     db.commit()

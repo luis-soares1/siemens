@@ -14,12 +14,12 @@ class Location(Base):
     cityname = Column(String)
     country = Column(String)
     timezone_id = Column(Integer, ForeignKey('timezone.id'))
-    sunrise = Column(Integer)  # Unix time
-    sunset = Column(Integer)  # Unix time
+    sunrise = Column(Integer)
+    sunset = Column(Integer)
     longitude = Column(Float)
     latitude = Column(Float)
     
-    timezone = relationship("Timezone")
+    timezone = relationship("Timezone", lazy="joined")
 
 class Timezone(Base):
     __tablename__ = 'timezone'
@@ -32,10 +32,8 @@ class Weather(Base):
     main = Column(String)
     description = Column(String)
     icon = Column(String)
-    weather_metrics_id = Column(Integer, ForeignKey('weather_metrics.id'))
     
-    weather_metrics = relationship("WeatherMetrics", backref="weather")
-    current_weathers = relationship("CurrentWeather", secondary=weather_association, back_populates="weathers")
+    current_weathers = relationship("CurrentWeather", secondary=weather_association, back_populates="weathers", lazy="joined")
 
 class WeatherMetrics(Base):
     __tablename__ = 'weather_metrics'
@@ -52,7 +50,7 @@ class WeatherMetrics(Base):
     sea_level = Column(Float)
     grnd_level = Column(Float)
 
-    wind = relationship("Wind", backref="weather_metrics")
+    wind = relationship("Wind", backref="weather_metrics", lazy="joined")
 
 class Wind(Base):
     __tablename__ = 'wind'
@@ -78,7 +76,7 @@ class CurrentWeather(Base):
     fetch_time = Column(DateTime)
     dt_calculation = Column(Integer)
 
-    location = relationship("Location")
-    metrics = relationship("WeatherMetrics")
-    weathers = relationship("Weather", secondary=weather_association, back_populates="current_weathers")
-    volume = relationship("Volumes")
+    location = relationship("Location", lazy="joined")
+    metrics = relationship("WeatherMetrics", lazy="joined")
+    weathers = relationship("Weather", secondary=weather_association, back_populates="current_weathers", lazy="joined")
+    volume = relationship("Volumes", lazy="joined")

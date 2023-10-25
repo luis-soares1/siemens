@@ -71,8 +71,8 @@ class WeatherSchema(BaseModel):
 class CurrentWeatherSchema(BaseModel):
     id: Optional[int]
     location: LocationSchema
-    weathers: List[WeatherSchema]   # Note the change here
-    weather_metrics: WeatherMetricsSchema  # Including the metrics directly for a more comprehensive response
+    weathers: List[WeatherSchema]
+    weather_metrics: WeatherMetricsSchema
     volume: VolumesSchema
     dt_calculation: int
 

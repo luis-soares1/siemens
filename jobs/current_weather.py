@@ -1,5 +1,6 @@
-import requests
 from settings.config import get_settings
+from fastapi import Depends
+import requests
 from db.crud import (
     create_location,
     create_timezone,
@@ -14,21 +15,29 @@ from fastapi import Depends
 from utils.decorators import retry
 from datetime import datetime
 
+def get_db():
+    db = SessionLocal()
+    try:
+        return db
+    finally:
+        db.close()
 
-@retry(max_retries=3, retry_delay=5)
-def get_current_weather_data(lat: float, lon: float) -> None:
-    print(lat, lon)
+
+# @retry(max_retries=3, retry_delay=5)
+def get_current_weather_data(lat: float, lon: float) -> None:    
+    db = get_db()
     settings = get_settings()
     url = f"{settings.weather_api_url}/weather?lat={lat}&lon={lon}&appid={settings.weather_api_key}&units=metric"
     data = fetch_weather_data(url)
-
-    with SessionLocal() as db:
-        try:
-            save_weather_data_to_db(db, data)
-        except Exception as e:
-            db.rollback()
-            print(f"Error saving to database: {e}")
-            raise
+    try:
+        save_weather_data_to_db(db, data)
+        db.close()
+    except Exception as e:
+        db.rollback()
+        print(f"Error saving to database: {e}")
+        raise
+    finally:
+        db.close()
 
 
 def fetch_weather_data(url: str) -> dict:
@@ -36,6 +45,7 @@ def fetch_weather_data(url: str) -> dict:
     try:
         response = requests.get(url)
         response.raise_for_status()
+        print(response.text[1])
         return response.json()
     except requests.RequestException as e:
         print(f"Error during request: {e}")
@@ -51,8 +61,8 @@ def save_weather_data_to_db(db, data: dict) -> None:
         'timezone_id': create_timezone(db, {'shift_seconds': data['timezone']}).id,
         'sunrise': data['sys']['sunrise'],
         'sunset': data['sys']['sunset'],
-        'longitude': data['coord']['lon'],
-        'latitude': data['coord']['lat']
+        'longitude': round(data['coord']['lon'], ndigits=3),
+        'latitude': round(data['coord']['lat'], ndigits=3)
     })
 
     volume_obj = create_volumes(db, {
@@ -91,7 +101,7 @@ def save_weather_data_to_db(db, data: dict) -> None:
         'fetch_time': timestamp_fetched,
         'dt_calculation': data['dt'],
         'location_id': location_obj.id,
-        'weather_metrics_id': weather_metrics_obj.id,  # linking WeatherMetrics
+        'weather_metrics_id': weather_metrics_obj.id,
         'volume_id': volume_obj.id
     })
 
@@ -103,7 +113,6 @@ def save_weather_data_to_db(db, data: dict) -> None:
             'main': weather['main'],
             'description': weather['description'],
             'icon': weather['icon'],
-            'weather_metrics_id': weather_metrics_obj.id
         })
         weather_objects.append(weather_obj)
 
