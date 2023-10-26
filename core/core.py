@@ -17,7 +17,7 @@ class Core:
         pass
     
 
-    def load_locations(self) -> None:
+    def run(self) -> None:
         scheduler = Scheduler()
 
         with open('settings/location_list.csv', 'r') as csv_file:
@@ -26,7 +26,6 @@ class Core:
             next(reader)
             for row in reader:
                 kwargs = {'lat': row[0], 'lon': row[1]}
-                print(kwargs)
                 scheduler.enqueue_job(get_current_weather_data, kwargs)
 
         scheduler.start()

@@ -1,16 +1,25 @@
-from fastapi import APIRouter, HTTPException
-from db.query import get_latest_data_query, get_latest_metrics
+from fastapi import APIRouter, HTTPException, Depends
+from db.query import get_latest_data_query
+from db.config import get_db
+from sqlalchemy.orm import Session
+from middleware import cache
 
 router = APIRouter()
 
+
 @router.get("/weather/")
-def get_latest_data(lat: float, lon: float):
-    weather = get_latest_data_query(lat, lon)
-    print(weather)
+async def get_latest_data(lat: float, lon: float, db: Session = Depends(get_db)):
+    print(lat, lon)
+    # key = f"latest_weather_{lat}_{lon}"
+    # is_cached = await cache.get(key)
+    # if not is_cached:
+    weather = get_latest_data_query(lat=lat, lon=lon, db=db)
+        # cache.put(key, weather)
     if not weather:
         raise HTTPException(status_code=404, detail="Data not found for given GPS coordinates")
     print(weather.location)
     return weather
+
 
 # router.get("/weather")
 # async def get_latest_metrics(lat: float, lon: float):

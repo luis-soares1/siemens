@@ -1,5 +1,7 @@
+import httpx
 from settings.config import get_settings
 from fastapi import Depends
+from db.config import get_db
 import requests
 from db.crud import (
     create_location,
@@ -8,29 +10,25 @@ from db.crud import (
     create_weather_metrics,
     create_wind,
     create_volumes,
-    create_current_weather)
+    create_current_weather
+    )
 from db.config import SessionLocal
 from sqlalchemy.orm import Session
 from fastapi import Depends
 from utils.decorators import retry
 from datetime import datetime
 
-def get_db():
-    db = SessionLocal()
-    try:
-        return db
-    finally:
-        db.close()
 
 
 # @retry(max_retries=3, retry_delay=5)
-def get_current_weather_data(lat: float, lon: float) -> None:    
-    db = get_db()
+async def get_current_weather_data(lat: float, lon: float) -> None:    
     settings = get_settings()
+    db = SessionLocal()
     url = f"{settings.weather_api_url}/weather?lat={lat}&lon={lon}&appid={settings.weather_api_key}&units=metric"
-    data = fetch_weather_data(url)
+    data = await fetch_weather_data(url)
+    print(lat, lon)
     try:
-        save_weather_data_to_db(db, data)
+        await save_weather_data_to_db(db, data)
         db.close()
     except Exception as e:
         db.rollback()
@@ -40,19 +38,14 @@ def get_current_weather_data(lat: float, lon: float) -> None:
         db.close()
 
 
-def fetch_weather_data(url: str) -> dict:
-    print('Triggered worker, fetching data...')
-    try:
-        response = requests.get(url)
+async def fetch_weather_data(url: str) -> dict:
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url)
         response.raise_for_status()
-        print(response.text[1])
         return response.json()
-    except requests.RequestException as e:
-        print(f"Error during request: {e}")
-        raise
 
 
-def save_weather_data_to_db(db, data: dict) -> None:
+async def save_weather_data_to_db(db, data: dict) -> None:
     timestamp_fetched = datetime.now()
 
     location_obj = create_location(db, {

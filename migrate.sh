@@ -8,9 +8,6 @@ fi
 
 DYNAMIC_MESSAGE=$1
 
-# Delete db
-rm -f *.db 
-
 # delete alembic migrations
 cd alembic/versions
 rm -rf *
