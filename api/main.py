@@ -3,7 +3,9 @@ from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from routes.weather import router as weather_router
 from middleware.cache import create_redis_pool, close_redis_pool
+from settings.config import get_settings
 
+settings = get_settings()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -13,10 +15,14 @@ async def lifespan(app: FastAPI):
     await close_redis_pool()
 
 try:
-    app = FastAPI(lifespan=lifespan)
+    docs_url = None if not settings.debug else "/docs"
+    redoc_url = None if not settings.debug else "/redoc"
+    openapi_url = None if not settings.debug else "/openapi.json"
+    app = FastAPI(title=settings.app_name, lifespan=lifespan, debug=settings.debug, docs_url=docs_url, redoc_url=redoc_url)
     app.include_router(weather_router, tags=["weather"])
     core = Core()
-    core.run()
+    core.load_locations()
+    core.start_scheduler()
 except Exception as e:
     print('Error launching algorithm', e)
     

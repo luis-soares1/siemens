@@ -5,16 +5,17 @@ class Settings(BaseSettings):
     app_name: str
     admin_email: str
     environment: str
+    debug: bool
     weather_api_key: str
     weather_api_url: str
     job_interval: int
     host: str
     port: int
-    db_name: str
-    db_host: str
-    db_port: int
-    db_user: str
-    db_password: str
+    postgres_db: str
+    postgres_host: str
+    postgres_port: int
+    postgres_user: str
+    postgres_password: str
     redis_host: str
     redis_port: int
     redis_is_db: int

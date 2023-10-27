@@ -15,12 +15,12 @@ def get_latest_data_query(lat: float, lon: float, db: Session) -> CurrentWeather
     
     return weather
 
-def get_latest_metrics(
+def get_latest_metrics_query(
         lat: float,
         lon: float,
         metrics: List[str],
         db: Session
-        ) -> dict[str, int | float]:
+        ) -> dict[str, int | float | None]:
     weather = db.query(CurrentWeather).filter(
         CurrentWeather.location.latitude == lat,
         CurrentWeather.location.longitude == lon).last()

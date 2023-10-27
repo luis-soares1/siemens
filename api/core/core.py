@@ -4,7 +4,7 @@ from jobs.current_weather import get_current_weather_data
 
 class Core:
     def __init__(self) -> None:
-        pass
+        self.scheduler = Scheduler()
     
     def should_run_scheduler(self) -> bool:
         # If db has something AND can RUN (meaning the difference between last time stored 
@@ -17,18 +17,21 @@ class Core:
         pass
     
 
-    def run(self) -> None:
-        scheduler = Scheduler()
-
+    def load_locations(self) -> None:
         with open('settings/location_list.csv', 'r') as csv_file:
             reader = csv.reader(csv_file)
             # Skip headers
             next(reader)
             for row in reader:
+                print(row)
                 kwargs = {'lat': row[0], 'lon': row[1]}
-                scheduler.enqueue_job(get_current_weather_data, kwargs)
+                self.scheduler.enqueue_job(get_current_weather_data, kwargs)
 
-        scheduler.start()
+    def start_scheduler(self) -> None:
+        self.scheduler.start_threaded()
+        
+    def start_scheduler_threaded(self) -> None:
+        self.scheduler.start_threaded()
     
     
     

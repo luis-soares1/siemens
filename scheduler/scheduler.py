@@ -1,10 +1,12 @@
-import os
 import logging
+import asyncio
+import threading
 from settings.config import get_settings
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
+# from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.schedulers.background import BackgroundScheduler
+# from apscheduler.executors.asyncio import AsyncIOExecutor
 from queue import Queue
-from apscheduler.executors.asyncio import AsyncIOExecutor
+
 from apscheduler.events import EVENT_JOB_EXECUTED, EVENT_JOB_ERROR
 
 
@@ -14,14 +16,13 @@ logger = logging.getLogger(__name__)
 
 class Scheduler():
     def __init__(self) -> None:
-        executors = {
-            'default': AsyncIOExecutor()
-        }
-        self.scheduler = AsyncIOScheduler(executors=executors, job_defaults={'misfire_grace_time': 15})
+        self.scheduler = BackgroundScheduler(job_defaults={'misfire_grace_time': 60})
         self.interval = get_settings().job_interval
         self.job_queue = Queue()
-    # If a job fails, add it back to the queue, at the front. Maybe use deque
+
     def start(self) -> None:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
         print(f"Total jobs scheduled: {self.get_queue_length()}")
         try:
             while not self.job_queue.empty():
@@ -43,3 +44,8 @@ class Scheduler():
         
     def get_queue_length(self) -> int:
         return self.job_queue.qsize()
+    
+    def start_threaded(self) -> None:
+        """Starts the scheduler in a new thread."""
+        scheduler_thread = threading.Thread(target=self.start)
+        scheduler_thread.start()
