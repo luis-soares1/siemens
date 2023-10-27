@@ -17,7 +17,7 @@ class Scheduler():
         executors = {
             'default': AsyncIOExecutor()
         }
-        self.scheduler = AsyncIOScheduler(executors=executors, job_defaults={'misfire_grace_time': 10})
+        self.scheduler = AsyncIOScheduler(executors=executors, job_defaults={'misfire_grace_time': 15})
         self.interval = get_settings().job_interval
         self.job_queue = Queue()
     # If a job fails, add it back to the queue, at the front. Maybe use deque

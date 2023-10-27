@@ -19,7 +19,6 @@ from utils.decorators import retry
 from datetime import datetime
 
 
-
 # @retry(max_retries=3, retry_delay=5)
 async def get_current_weather_data(lat: float, lon: float) -> None:    
     settings = get_settings()

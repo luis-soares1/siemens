@@ -9,14 +9,13 @@ router = APIRouter()
 
 @router.get("/weather/")
 async def get_latest_data(lat: float, lon: float, db: Session = Depends(get_db)):
-    print(lat, lon)
-    # key = f"latest_weather_{lat}_{lon}"
-    # is_cached = await cache.get(key)
-    # if not is_cached:
-    weather = get_latest_data_query(lat=lat, lon=lon, db=db)
-        # cache.put(key, weather)
+    key = f"latest_weather_{lat}_{lon}"
+    weather = await cache.get(key)
     if not weather:
-        raise HTTPException(status_code=404, detail="Data not found for given GPS coordinates")
+        weather = get_latest_data_query(lat=lat, lon=lon, db=db)
+        await cache.put(key, weather, 60 * 10)
+        if not weather:
+            raise HTTPException(status_code=404, detail="Data not found for given GPS coordinates")
     print(weather.location)
     return weather
 
