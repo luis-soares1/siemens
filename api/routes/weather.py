@@ -4,7 +4,7 @@ from db.config import get_db, get_settings
 from sqlalchemy.orm import Session
 from middleware import cache
 
-router = APIRouter()
+router = APIRouter(prefix="/v1")
 settings= get_settings()
 
 @router.get("/weather")
