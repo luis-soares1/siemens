@@ -1,12 +1,10 @@
-from settings.config import get_settings
+from settings.config import settings
 import redis.asyncio as redis
 import pickle as p
 
-settings = get_settings()
-
 async def create_redis_pool():
     global redis_pool
-    REDIS_URL = f"redis://{settings.redis_host}:6379"
+    REDIS_URL = f"redis://{settings.redis_host}:{settings.redis_port}"
     connection_pool = redis.ConnectionPool().from_url(REDIS_URL)
     redis_pool = redis.Redis.from_pool(connection_pool)
 
@@ -43,9 +41,7 @@ async def cache_or_get(lat: float, lon: float, fn, kwargs):
     cached_data = await get(key)
     if cached_data:
         return cached_data
-    # If not in cache, query from database
     obj = fn(**kwargs)
-    # Cache the result before returning
     if obj:
         await put(key, obj, ttl=300)  # cache for 5 minutes or any ttl you prefer
     return obj

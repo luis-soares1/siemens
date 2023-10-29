@@ -39,6 +39,7 @@ async def get_latest_metrics(
     # if not obj:
     obj = get_latest_metrics_query(lat=lat, lon=lon, db=db, metrics=metrics)
         # await cache.put(key, obj, settings.job_interval)
-    if not obj:
-        raise HTTPException(status_code=404, detail="Data not found for given GPS coordinates")
+    if "error" in obj:
+        raise HTTPException(status_code=404, detail=obj['error'])
+    
     return obj

@@ -1,8 +1,7 @@
-from db.config import SessionLocal
 from db.models import CurrentWeather, Location
 from sqlalchemy.orm import Session
 from typing import List, Union, Dict
-from utils.utils import extract_wind_data, extract_temp_data, METRIC_EXTRACTION_MAP
+from utils.utils import METRIC_EXTRACTION_MAP
 
 
 def get_latest_data_query(lat: float, lon: float, db: Session) -> CurrentWeather:
@@ -26,12 +25,18 @@ def get_latest_metrics_query(
     weather_entry = get_latest_data_query(lat, lon, db)
     print(metrics)
 
+    # No coordinates
     if not weather_entry:
-        return {}
+        return {"error": "Data not found for given GPS coordinates"}
 
     result = {}
     for metric in metrics:
         if metric in METRIC_EXTRACTION_MAP:
             result[metric] = METRIC_EXTRACTION_MAP[metric](weather_entry.metrics)
+            
+    # Coordinates but no/wrong metrics.
+    if len(result) == 0:
+        return {"error": "Queried metrics are not available"}
+    
     result['fetch_time'] = weather_entry.fetch_time
     return result

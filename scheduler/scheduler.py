@@ -10,13 +10,22 @@ from utils.logging import logger
 class JobScheduler:
     """Scheduler to manage and execute jobs at specified intervals."""
 
-    def __init__(self, max_instances: int = 5, cycle_callback: Callable[[], None] = lambda: None) -> None:
+    def __init__(
+        self,
+        max_instances: int = 5,
+        cycle_callback: Callable[[],
+                                 None] = lambda: None) -> None:
         self.current_jobs_count = 0
         self.total_jobs_count = 0
         self.cycle_callback = cycle_callback
-        self.scheduler = BlockingScheduler(job_defaults={'misfire_grace_time': settings.job_interval, 'max_instances': max_instances})
+        self.scheduler = BlockingScheduler(
+            job_defaults={
+                'misfire_grace_time': settings.job_interval,
+                'max_instances': max_instances})
         self.jobs_queue = Queue()
-        self.scheduler.add_listener(self._job_event_listener, EVENT_JOB_EXECUTED | EVENT_JOB_ERROR)
+        self.scheduler.add_listener(
+            self._job_event_listener,
+            EVENT_JOB_EXECUTED | EVENT_JOB_ERROR)
 
     def run(self) -> None:
         """Start the scheduler."""
@@ -37,7 +46,11 @@ class JobScheduler:
         """Schedule all jobs present in the queue."""
         while not self.jobs_queue.empty():
             fn, kwargs = self.jobs_queue.get()
-            self.scheduler.add_job(fn, 'interval', seconds=settings.job_interval, kwargs=kwargs)
+            self.scheduler.add_job(
+                fn,
+                'interval',
+                seconds=settings.job_interval,
+                kwargs=kwargs)
 
     def _job_event_listener(self, event) -> None:
         """Listener for job events."""

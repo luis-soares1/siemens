@@ -9,6 +9,7 @@ def get_env_path():
 
 class Settings(BaseSettings):
     app_name: str
+    app_description: str
     admin_email: str
     environment: str
     debug: bool

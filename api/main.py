@@ -18,7 +18,7 @@ try:
     docs_url = None if not settings.debug else "/docs"
     redoc_url = None if not settings.debug else "/redoc"
     openapi_url = None if not settings.debug else "/openapi.json"
-    app = FastAPI(title=settings.app_name, lifespan=lifespan, debug=settings.debug, docs_url=docs_url, redoc_url=redoc_url)
+    app = FastAPI(title=settings.app_name, description=settings.app_description, lifespan=lifespan, debug=settings.debug, docs_url=docs_url, redoc_url=redoc_url)
     app.include_router(weather_router, tags=["weather"])
     app.include_router(data_router, tags=["data"])
     uvicorn.run(app, host=settings.host, port=settings.port)
