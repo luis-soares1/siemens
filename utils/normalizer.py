@@ -33,7 +33,7 @@ def normalize_api_resp(data: dict):
         # some APIs might not always provide this
         'visibility': data.get('visibility', None),
         'cloudiness': data['clouds']['all'],
-        'wind_id': wind_obj.id,
+        'wind': wind_obj,
         'humidity': data['main']['humidity'],
         'temp_min': data['main']['temp_min'],
         'temp_max': data['main']['temp_max'],
@@ -46,9 +46,9 @@ def normalize_api_resp(data: dict):
     current_weather = {
         'fetch_time': data['timestamp_fetched'],
         'dt_calculation': data['dt'],
-        'location_id': location_obj.id,
-        'weather_metrics_id': weather_metrics_obj.id,
-        'volume_id': volume_obj.id,
+        'location': location_obj,
+        'weather_metrics': weather_metrics_obj,
+        'volume': volume_obj,
         'weathers': []
     }
 
@@ -62,6 +62,5 @@ def normalize_api_resp(data: dict):
         }
         weather_objects.append(weather_obj)
     current_weather['weathers'] = weather_objects
-    
-    return json.dumps({ 'location': location_obj, 'volume': volume_obj, 'wind': wind_obj, 'weather_metrics': weather_metrics_obj, 'current_weather': current_weather })
+    return { 'location': location_obj, 'volume': volume_obj, 'wind': wind_obj, 'weather_metrics': weather_metrics_obj, 'current_weather': current_weather }
 

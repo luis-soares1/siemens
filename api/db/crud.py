@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from db.models import (Location, Timezone, Weather, WeatherMetrics, Wind, Volumes, CurrentWeather)
 from db.schemas import (TimezoneSchema, LocationSchema, WeatherMetricsSchema, WeatherSchema, WindSchema, VolumesSchema, CurrentWeatherSchema)
+from datetime import datetime
 
 # CRUD operations for Location
 def create_location(db: Session, location: LocationSchema):
@@ -10,7 +11,10 @@ def create_location(db: Session, location: LocationSchema):
     ).first()
     if existing_location:
         return existing_location
+    tz = location.pop('timezone')
+    _tz = create_timezone(db, tz)
     _location = Location(**location)
+    _location.timezone_id = _tz.id
     db.add(_location)
     db.commit()
     db.refresh(_location)
@@ -47,7 +51,10 @@ def create_weather_metrics(db: Session, weather_metrics: WeatherMetricsSchema):
     # existing_weather_metrics = db.query(WeatherMetrics).filter_by(main=weather_metrics['main']).first()
     # if False:
     #     return existing_weather_metrics
+    wind = weather_metrics.pop('wind')
+    _wind = create_wind(db, wind)
     _weather_metrics = WeatherMetrics(**weather_metrics)
+    _weather_metrics.wind_id = _wind.id
     db.add(_weather_metrics)
     db.commit()
     db.refresh(_weather_metrics)
@@ -86,8 +93,24 @@ def get_current_weather(db: Session, skip: int = 0, limit: int = 100):
     return db.query(CurrentWeather).offset(skip).limit(limit).all()
 
 def create_current_weather(db: Session, current_weather: CurrentWeatherSchema):
-    _current_weather = CurrentWeather(**current_weather)
+    loc = create_location(db, current_weather.pop('location'))
+    metrics = create_weather_metrics(db, current_weather.pop('weather_metrics'))
+    vols = create_volumes(db, current_weather.pop('volume'))
+    weathers = []
+    for weather in current_weather.pop('weathers'):
+        weathers.append(create_weather(db, weather))
+    
+    _current_weather = CurrentWeather(
+        location_id=loc.id,
+        weather_metrics_id=metrics.id,
+        volume_id=vols.id,
+        weathers=weathers,
+        fetch_time=datetime.strptime(current_weather['fetch_time'].strip('"'), "%Y-%m-%d %H:%M:%S.%f"),
+        dt_calculation=current_weather['dt_calculation']
+    )
+
     db.add(_current_weather)
     db.commit()
     db.refresh(_current_weather)
     return _current_weather
+    

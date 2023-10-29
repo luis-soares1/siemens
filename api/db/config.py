@@ -6,9 +6,10 @@ from settings.config import get_settings
 settings = get_settings()
 
 def generate_db_url():
-    url = f"postgresql://{settings.postgres_user}:{settings.postgres_password}@{settings.postgres_host}:{settings.postgres_port}/{settings.postgres_db}"
-    print(url, 'URL')
-    return url
+    # url = f"postgresql://{settings.postgres_user}:{settings.postgres_password}@{settings.postgres_host}:{settings.postgres_port}/{settings.postgres_db}"
+    return "sqlite:///./test.db"
+    # print(url, 'URL')
+    # return url
 
 def get_db():
     db = SessionLocal()

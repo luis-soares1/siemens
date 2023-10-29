@@ -3,6 +3,7 @@ import logging
 from apscheduler.schedulers.blocking import BlockingScheduler
 # from apscheduler.executors.asyncio import AsyncIOExecutor
 from queue import Queue
+from typing import Callable
 from apscheduler.events import EVENT_JOB_EXECUTED, EVENT_JOB_ERROR
 
 logging.basicConfig(filename='job_errors.log', level=logging.ERROR,
@@ -10,17 +11,21 @@ logging.basicConfig(filename='job_errors.log', level=logging.ERROR,
 logger = logging.getLogger(__name__)
 
 class Scheduler:
-    def __init__(self, interval: int = 15) -> None:
+    def __init__(self, interval: int = 15, cycle_trigger: Callable[[], None] = lambda: None) -> None:
         # self.scheduler = BlockingScheduler(executors={'default': AsyncIOExecutor()}, 
         #                                   job_defaults={'misfire_grace_time': 10, 'max_instances': 5})
+        self.curr_num_jobs = 0
+        self.total_num_jobs = 0
+        self.cycle_trigger = cycle_trigger
         self.scheduler = BlockingScheduler(job_defaults={'misfire_grace_time': 10, 'max_instances': 5})
         self.interval = interval
         self.job_queue = Queue()
         self.scheduler.add_listener(self.listener, EVENT_JOB_EXECUTED | EVENT_JOB_ERROR)
 
-    def run_forever(self) -> None:
-        """Run the scheduler indefinitely"""
+    def run(self) -> None:
+        """Run the scheduler"""
         logger.info("Starting the scheduler.")
+        self.total_num_jobs = self.job_queue.qsize()
         self.schedule_jobs()
         try:
             self.scheduler.start()
@@ -41,12 +46,16 @@ class Scheduler:
 
     def listener(self, event) -> None:
         """Listener for job events"""
+        self.curr_num_jobs += 1
+        if self.is_cycle():
+            self.cycle_trigger()
+            self.curr_num_jobs = 0
+            
         if event.exception:
             logger.error(f"Job {event.job_id} raised an exception: {event.exception}")
         else:
             logger.info(f"Job {event.job_id} executed successfully.")
-
-    def get_queue_length(self) -> int:
-        """Return the number of jobs in the queue"""
-        return self.job_queue.qsize()
+    
+    def is_cycle(self):
+        return self.curr_num_jobs == self.total_num_jobs
 

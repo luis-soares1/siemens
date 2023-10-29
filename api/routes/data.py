@@ -1,14 +1,30 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Body
 from api.db.config import get_db, get_settings
 from sqlalchemy.orm import Session
 from middleware import cache
+from typing import Any
+from api.db.crud import create_current_weather
 
 router = APIRouter()
 settings= get_settings()
 
 @router.post("/receive_data/weather")
-async def receive_latest_data(data: dict, db: Session = Depends(get_db)):
-    print('received!')
+async def receive_latest_data(data: Any = Body(...), db: Session = Depends(get_db)):
+    for d in data:
+        print(d)
+        create_current_weather(db, d['current_weather'])
+        # loc = create_location(db, d['location'])
+        # metrics = create_weather_metrics(db, d['weather_metrics'])
+        # loc.timezone_id = tz.id
+        # metrics.wind_id = wind.id
+        # create_current_weather(db, d['current_weather'])
+        
+        # for weather in d['current_weather']['weather']:
+        #     w = create_weather(weather)
+            
+        
+        
+        # create_weather(db, **d['weather'])
     # try:
     #     db.add(data)
     #     db.commit()
