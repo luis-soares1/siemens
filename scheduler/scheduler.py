@@ -1,61 +1,56 @@
 import logging
-# from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.schedulers.blocking import BlockingScheduler
-# from apscheduler.executors.asyncio import AsyncIOExecutor
+from apscheduler.events import EVENT_JOB_EXECUTED, EVENT_JOB_ERROR
 from queue import Queue
 from typing import Callable
-from apscheduler.events import EVENT_JOB_EXECUTED, EVENT_JOB_ERROR
+from settings.config import settings
+from utils.logging import logger
 
-logging.basicConfig(filename='job_errors.log', level=logging.ERROR,
-                    format='%(asctime)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
 
-class Scheduler:
-    def __init__(self, interval: int = 15, cycle_trigger: Callable[[], None] = lambda: None) -> None:
-        # self.scheduler = BlockingScheduler(executors={'default': AsyncIOExecutor()}, 
-        #                                   job_defaults={'misfire_grace_time': 10, 'max_instances': 5})
-        self.curr_num_jobs = 0
-        self.total_num_jobs = 0
-        self.cycle_trigger = cycle_trigger
-        self.scheduler = BlockingScheduler(job_defaults={'misfire_grace_time': 10, 'max_instances': 5})
-        self.interval = interval
-        self.job_queue = Queue()
-        self.scheduler.add_listener(self.listener, EVENT_JOB_EXECUTED | EVENT_JOB_ERROR)
+class JobScheduler:
+    """Scheduler to manage and execute jobs at specified intervals."""
+
+    def __init__(self, max_instances: int = 5, cycle_callback: Callable[[], None] = lambda: None) -> None:
+        self.current_jobs_count = 0
+        self.total_jobs_count = 0
+        self.cycle_callback = cycle_callback
+        self.scheduler = BlockingScheduler(job_defaults={'misfire_grace_time': settings.job_interval, 'max_instances': max_instances})
+        self.jobs_queue = Queue()
+        self.scheduler.add_listener(self._job_event_listener, EVENT_JOB_EXECUTED | EVENT_JOB_ERROR)
 
     def run(self) -> None:
-        """Run the scheduler"""
+        """Start the scheduler."""
         logger.info("Starting the scheduler.")
-        self.total_num_jobs = self.job_queue.qsize()
-        self.schedule_jobs()
+        self.total_jobs_count = self.jobs_queue.qsize()
+        self._schedule_all_jobs_in_queue()
         try:
             self.scheduler.start()
         except (KeyboardInterrupt, SystemExit):
             self.scheduler.shutdown()
             logger.info("Scheduler has been shut down.")
 
-    def enqueue_job(self, fn, kwargs) -> None:
-        """Add a job to the scheduler's queue"""
-        self.job_queue.put((fn, kwargs))
+    def enqueue_job(self, fn: Callable, kwargs: dict) -> None:
+        """Add a job to the scheduler's queue."""
+        self.jobs_queue.put((fn, kwargs))
 
+    def _schedule_all_jobs_in_queue(self) -> None:
+        """Schedule all jobs present in the queue."""
+        while not self.jobs_queue.empty():
+            fn, kwargs = self.jobs_queue.get()
+            self.scheduler.add_job(fn, 'interval', seconds=settings.job_interval, kwargs=kwargs)
 
-    def schedule_jobs(self) -> None:
-        """Schedule all jobs in the queue"""
-        while not self.job_queue.empty():
-            fn, kwargs = self.job_queue.get()
-            self.scheduler.add_job(fn, 'interval', seconds=self.interval, kwargs=kwargs)
+    def _job_event_listener(self, event) -> None:
+        """Listener for job events."""
+        self.current_jobs_count += 1
+        if self._has_completed_cycle():
+            self.cycle_callback()
+            self.current_jobs_count = 0
 
-    def listener(self, event) -> None:
-        """Listener for job events"""
-        self.curr_num_jobs += 1
-        if self.is_cycle():
-            self.cycle_trigger()
-            self.curr_num_jobs = 0
-            
-        if event.exception:
-            logger.error(f"Job {event.job_id} raised an exception: {event.exception}")
-        else:
-            logger.info(f"Job {event.job_id} executed successfully.")
-    
-    def is_cycle(self):
-        return self.curr_num_jobs == self.total_num_jobs
+        # if event.exception:
+        #     logger.error(f"Job {event.job_id} raised an exception: {event.exception}")
+        # else:
+        #     logger.info(f"Job {event.job_id} executed successfully.")
 
+    def _has_completed_cycle(self) -> bool:
+        """Check if all jobs in the cycle have been executed."""
+        return self.current_jobs_count == self.total_jobs_count

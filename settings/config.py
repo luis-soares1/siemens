@@ -35,3 +35,5 @@ https://fastapi.tiangolo.com/advanced/settings/#__tabbed_6_1
 @lru_cache()
 def get_settings():
     return Settings()
+
+settings = Settings()

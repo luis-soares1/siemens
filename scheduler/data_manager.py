@@ -1,4 +1,7 @@
+from settings.config import settings
+from utils.logging import logger
 import requests
+
 
 class DataManager:
     def __init__(self):
@@ -8,10 +11,12 @@ class DataManager:
         self.batch_data.append(data)
 
     def send_batch_data(self):
-        print('Data has been sent to the backend.')
-        url = "http://localhost:8000/receive_data/weather"
+        response = ""
+        url = f"http://{settings.host}:{settings.port}/receive_data/weather"
         with requests.Session() as s:
             response = s.post(url, json=self.batch_data)
         self.batch_data = []
+        
+        logger.info(f"Data has been sent. Got the following response back: {response}")
 
 data_manager = DataManager()
