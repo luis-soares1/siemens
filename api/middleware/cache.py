@@ -2,28 +2,34 @@ from settings.config import settings
 import redis.asyncio as redis
 import pickle as p
 
+
 async def create_redis_pool():
     global redis_pool
     REDIS_URL = f"redis://{settings.redis_host}:{settings.redis_port}"
     connection_pool = redis.ConnectionPool().from_url(REDIS_URL)
     redis_pool = redis.Redis.from_pool(connection_pool)
 
+
 async def put(key, value, ttl):
     result = await redis_pool.set(key, p.dumps(value), ex=ttl)
     return bool(result)
 
+
 async def get(key):
-    results = await redis_pool.get(key)  
+    results = await redis_pool.get(key)
     if results:
         print('It was cached', p.loads(results))
         return p.loads(results)
-    return None  
+    return None
+
 
 async def incr(key):
     result = await redis_pool.incr(key)
     return bool(result)
 
 # Using aioredis' `iscan` instead of the blocking `scan`
+
+
 async def scan():
     keys = []
     async for key in redis_pool.iscan():
@@ -31,6 +37,8 @@ async def scan():
     return keys
 
 # Make sure to close the connection pool when you're done
+
+
 async def close_redis_pool():
     await redis_pool.close()
     # await redis_pool.wait_closed()
@@ -43,5 +51,6 @@ async def cache_or_get(lat: float, lon: float, fn, kwargs):
         return cached_data
     obj = fn(**kwargs)
     if obj:
-        await put(key, obj, ttl=300)  # cache for 5 minutes or any ttl you prefer
+        # cache for 5 minutes or any ttl you prefer
+        await put(key, obj, ttl=300)
     return obj

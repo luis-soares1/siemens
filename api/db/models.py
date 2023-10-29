@@ -3,10 +3,11 @@ from sqlalchemy.orm import relationship
 from db.config import Base
 
 # Association table for Weather and CurrentWeather
-weather_association = Table('weather_association', Base.metadata,
-    Column('current_weather_id', Integer, ForeignKey('current_weather.id')),
-    Column('weather_id', Integer, ForeignKey('weather.id'))
-)
+weather_association = Table(
+    'weather_association', Base.metadata, Column(
+        'current_weather_id', Integer, ForeignKey('current_weather.id')), Column(
+            'weather_id', Integer, ForeignKey('weather.id')))
+
 
 class Location(Base):
     __tablename__ = 'location'
@@ -18,13 +19,15 @@ class Location(Base):
     sunset = Column(Integer)
     longitude = Column(Float)
     latitude = Column(Float)
-    
+
     timezone = relationship("Timezone", lazy="joined")
+
 
 class Timezone(Base):
     __tablename__ = 'timezone'
     id = Column(Integer, primary_key=True)
     shift_seconds = Column(Integer)  # Shift from UTC
+
 
 class Weather(Base):
     __tablename__ = 'weather'
@@ -32,8 +35,13 @@ class Weather(Base):
     main = Column(String)
     description = Column(String)
     icon = Column(String)
-    
-    current_weathers = relationship("CurrentWeather", secondary=weather_association, back_populates="weathers", lazy="joined")
+
+    current_weathers = relationship(
+        "CurrentWeather",
+        secondary=weather_association,
+        back_populates="weathers",
+        lazy="joined")
+
 
 class WeatherMetrics(Base):
     __tablename__ = 'weather_metrics'
@@ -52,12 +60,14 @@ class WeatherMetrics(Base):
 
     wind = relationship("Wind", backref="weather_metrics", lazy="joined")
 
+
 class Wind(Base):
     __tablename__ = 'wind'
     id = Column(Integer, primary_key=True)
     speed = Column(Float)
     deg = Column(Integer)
     gust = Column(Float)
+
 
 class Volumes(Base):
     __tablename__ = 'volumes'
@@ -66,6 +76,7 @@ class Volumes(Base):
     rain_3h = Column(Float)
     snow_1h = Column(Float)
     snow_3h = Column(Float)
+
 
 class CurrentWeather(Base):
     __tablename__ = 'current_weather'
@@ -78,5 +89,9 @@ class CurrentWeather(Base):
 
     location = relationship("Location", lazy="joined")
     metrics = relationship("WeatherMetrics", lazy="joined")
-    weathers = relationship("Weather", secondary=weather_association, back_populates="current_weathers", lazy="joined")
+    weathers = relationship(
+        "Weather",
+        secondary=weather_association,
+        back_populates="current_weathers",
+        lazy="joined")
     volume = relationship("Volumes", lazy="joined")

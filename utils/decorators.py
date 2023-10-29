@@ -1,6 +1,7 @@
 import time
 from functools import wraps
 
+
 def retry(max_retries=3, retry_delay=5):
     def decorator(func):
         @wraps(func)
@@ -12,11 +13,13 @@ def retry(max_retries=3, retry_delay=5):
                 except Exception as e:
                     retries -= 1
                     if retries == 0:
-                        print(f"Max retries reached for function {func.__name__}.")
+                        print(
+                            f"Max retries reached for function {func.__name__}.")
                         raise
                     else:
                         print(f"Error in function {func.__name__}: {str(e)}")
-                        print(f"Retrying function {func.__name__} in {retry_delay} seconds...")
+                        print(
+                            f"Retrying function {func.__name__} in {retry_delay} seconds...")
                         time.sleep(retry_delay)
         return wrapper
     return decorator

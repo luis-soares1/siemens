@@ -3,12 +3,14 @@ from pydantic import BaseModel, Field
 
 # Individual Components
 
+
 class TimezoneSchema(BaseModel):
     id: Optional[int]
     shift_seconds: int
 
     class Config:
         from_attributes = True
+
 
 class LocationSchema(BaseModel):
     id: Optional[int]
@@ -22,7 +24,7 @@ class LocationSchema(BaseModel):
 
     class Config:
         from_attributes = True
-        
+
 
 class WindSchema(BaseModel):
     id: Optional[int]
@@ -33,6 +35,7 @@ class WindSchema(BaseModel):
     class Config:
         from_attributes = True
 
+
 class VolumesSchema(BaseModel):
     id: Optional[int]
     rain_1h: Optional[float]
@@ -42,6 +45,7 @@ class VolumesSchema(BaseModel):
 
     class Config:
         from_attributes = True
+
 
 class WeatherMetricsSchema(BaseModel):
     id: Optional[int]
@@ -60,6 +64,7 @@ class WeatherMetricsSchema(BaseModel):
     class Config:
         from_attributes = True
 
+
 class WeatherSchema(BaseModel):
     id: Optional[int]
     main: str
@@ -68,6 +73,8 @@ class WeatherSchema(BaseModel):
 
     class Config:
         from_attributes = True
+
+
 class CurrentWeatherSchema(BaseModel):
     id: Optional[int]
     location: LocationSchema
@@ -79,12 +86,14 @@ class CurrentWeatherSchema(BaseModel):
     class Config:
         from_attributes = True
 
-# Requests 
+# Requests
+
 
 class Request(BaseModel):
     parameter: Optional[BaseModel]
 
 # Responses
+
 
 class Response(BaseModel):
     code: str

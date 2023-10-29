@@ -5,6 +5,7 @@ def extract_wind_data(weather_metrics):
         "gust": weather_metrics.wind.gust
     }
 
+
 def extract_temp_data(weather_metrics):
     return weather_metrics.temp
 

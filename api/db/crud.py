@@ -1,9 +1,25 @@
 from sqlalchemy.orm import Session
-from db.models import (Location, Timezone, Weather, WeatherMetrics, Wind, Volumes, CurrentWeather)
-from db.schemas import (TimezoneSchema, LocationSchema, WeatherMetricsSchema, WeatherSchema, WindSchema, VolumesSchema, CurrentWeatherSchema)
+from db.models import (
+    Location,
+    Timezone,
+    Weather,
+    WeatherMetrics,
+    Wind,
+    Volumes,
+    CurrentWeather)
+from db.schemas import (
+    TimezoneSchema,
+    LocationSchema,
+    WeatherMetricsSchema,
+    WeatherSchema,
+    WindSchema,
+    VolumesSchema,
+    CurrentWeatherSchema)
 from datetime import datetime
 
 # CRUD operations for Location
+
+
 def create_location(db: Session, location: LocationSchema):
     existing_location = db.query(Location).filter_by(
         longitude=location['longitude'],
@@ -23,7 +39,8 @@ def create_location(db: Session, location: LocationSchema):
 
 # CRUD operations for Timezone
 def create_timezone(db: Session, timezone: TimezoneSchema):
-    existing_timezone = db.query(Timezone).filter_by(shift_seconds=timezone['shift_seconds']).first()
+    existing_timezone = db.query(Timezone).filter_by(
+        shift_seconds=timezone['shift_seconds']).first()
     if existing_timezone:
         return existing_timezone
     _timezone = Timezone(**timezone)
@@ -47,6 +64,8 @@ def create_weather(db: Session, weather: WeatherSchema):
     return _weather
 
 # CRUD operations for WeatherMetrics
+
+
 def create_weather_metrics(db: Session, weather_metrics: WeatherMetricsSchema):
     # existing_weather_metrics = db.query(WeatherMetrics).filter_by(main=weather_metrics['main']).first()
     # if False:
@@ -66,7 +85,8 @@ def create_wind(db: Session, wind: WindSchema):
     existing_wind = db.query(Wind).filter_by(
         speed=wind['speed'],
         deg=wind['deg'],
-        gust=wind.get('gust', None)  # using get in case 'gust' might not always be provided
+        # using get in case 'gust' might not always be provided
+        gust=wind.get('gust', None)
     ).first()
     if existing_wind:
         return existing_wind
@@ -77,9 +97,17 @@ def create_wind(db: Session, wind: WindSchema):
     return _wind
 
 # CRUD operations for Volumes
+
+
 def create_volumes(db: Session, volume: VolumesSchema):
-    # Adjust your filter conditions based on unique criteria for Volumes if necessary
-    existing_volume = db.query(Volumes).filter_by(rain_1h=volume.get('rain_1h', None), rain_3h=volume.get('rain_3h', None), snow_1h=volume.get('snow_1h', None), snow_3h=volume.get('snow_3h', None)).first()
+    # Adjust your filter conditions based on unique criteria for Volumes if
+    # necessary
+    existing_volume = db.query(Volumes).filter_by(
+        rain_1h=volume.get(
+            'rain_1h', None), rain_3h=volume.get(
+            'rain_3h', None), snow_1h=volume.get(
+                'snow_1h', None), snow_3h=volume.get(
+                    'snow_3h', None)).first()
     if existing_volume:
         return existing_volume
     _volume = Volumes(**volume)
@@ -89,28 +117,32 @@ def create_volumes(db: Session, volume: VolumesSchema):
     return _volume
 
 # CRUD operations for CurrentWeather
+
+
 def get_current_weather(db: Session, skip: int = 0, limit: int = 100):
     return db.query(CurrentWeather).offset(skip).limit(limit).all()
 
+
 def create_current_weather(db: Session, current_weather: CurrentWeatherSchema):
     loc = create_location(db, current_weather.pop('location'))
-    metrics = create_weather_metrics(db, current_weather.pop('weather_metrics'))
+    metrics = create_weather_metrics(
+        db, current_weather.pop('weather_metrics'))
     vols = create_volumes(db, current_weather.pop('volume'))
     weathers = []
     for weather in current_weather.pop('weathers'):
         weathers.append(create_weather(db, weather))
-    
+
     _current_weather = CurrentWeather(
         location_id=loc.id,
         weather_metrics_id=metrics.id,
         volume_id=vols.id,
         weathers=weathers,
-        fetch_time=datetime.strptime(current_weather['fetch_time'].strip('"'), "%Y-%m-%d %H:%M:%S.%f"),
-        dt_calculation=current_weather['dt_calculation']
-    )
+        fetch_time=datetime.strptime(
+            current_weather['fetch_time'].strip('"'),
+            "%Y-%m-%d %H:%M:%S.%f"),
+        dt_calculation=current_weather['dt_calculation'])
 
     db.add(_current_weather)
     db.commit()
     db.refresh(_current_weather)
     return _current_weather
-    

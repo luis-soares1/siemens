@@ -5,6 +5,7 @@ from utils.normalizer import normalize_api_resp
 import requests
 from data_manager import data_manager
 
+
 @retry(max_retries=3, retry_delay=5)
 def fetch_and_populate(lat: float, lon: float) -> dict:
     url = f"{settings.weather_api_url}/weather"
@@ -14,7 +15,7 @@ def fetch_and_populate(lat: float, lon: float) -> dict:
         "appid": settings.weather_api_key,
         "units": "metric"
     }
-    
+
     with requests.Session() as r:
         response = r.get(url, params=params)
         response.raise_for_status()
