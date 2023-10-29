@@ -24,6 +24,7 @@ def get_latest_metrics_query(
         ) -> Dict[str, Union[int, float, None]]:
     
     weather_entry = get_latest_data_query(lat, lon, db)
+    print(metrics)
 
     if not weather_entry:
         return {}
