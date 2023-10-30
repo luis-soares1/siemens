@@ -13,8 +13,11 @@ services:
     volumes:
       - ./api:/app/api
     depends_on:
-      - db
-      - redis
+      redis: 
+        condition: service_healthy
+      db:
+        condition: service_healthy
+  
   script:
     build:
       context: .
@@ -22,10 +25,12 @@ services:
     volumes:
       - ./scheduler:/app/scheduler
     depends_on:
-      - web
+      web:
+        condition: service_started
     restart: always
     env_file:
       - scheduler/.env
+  
   db:
     image: postgres:16
     env_file:
@@ -33,7 +38,12 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: always
-    
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin"]
+      interval: 10s
+      timeout: 5s
+      retries: 1
+
   redis:
     image: redis:6.2
     env_file:
@@ -41,6 +51,11 @@ services:
     volumes:
       - redis_data:/data
     restart: always
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   postgres_data:

@@ -19,19 +19,19 @@ async def get_latest_data(
     Depends(get_db)
 ) -> CurrentWeatherSchema:
     key = f"latest_weather_{lat}_{lon}"
-    # weather = await cache.get(key)
-    # if not weather:
-    weather = get_latest_data_query(lat=lat, lon=lon, db=db)
-    # await cache.put(key, weather, app_settings.job_interval)
+    weather = await cache.get(key)
     if not weather:
-        error_msg = {
-            'status': status.HTTP_404_NOT_FOUND,
-            'msg': "Data not found for given GPS coordinates",
-            'result': "Some error message"
-        }
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=error_msg)
+        weather = get_latest_data_query(lat=lat, lon=lon, db=db)
+        await cache.put(key, weather, ttl=5*60)
+        if not weather:
+            error_msg = {
+                'status': status.HTTP_404_NOT_FOUND,
+                'msg': "Data not found for given GPS coordinates",
+                'result': "Some error message"
+            }
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=error_msg)
     return weather
 
 
@@ -52,19 +52,21 @@ async def get_latest_metrics(
                             detail="At least one metric must be provided")
 
     key = f"latest_weather_metrics_{lat}_{lon}"
-    # obj = await cache.get(key)
-    # if not obj:
-    obj = get_latest_metrics_query(lat=lat, lon=lon, db=db, metrics=metrics)
+    obj = await cache.get(key)
+    print(obj, 'from cache')
+    if not obj:
+        obj = get_latest_metrics_query(lat=lat, lon=lon, db=db, metrics=metrics)
+        if "error" in obj:
+            error_msg = {
+                'status': status.HTTP_404_NOT_FOUND,
+                'msg': obj['error'],
+                'result': "Some error message"
+            }
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=error_msg)
+        # If user inputs wrong metrics, the coordinates will be cached
+        # still
+        await cache.put(key, obj, ttl=5*60)
     print(obj)
-    # await cache.put(key, obj, app_settings.job_interval)
-    if "error" in obj:
-        error_msg = {
-            'status': status.HTTP_404_NOT_FOUND,
-            'msg': obj['error'],
-            'result': "Some error message"
-        }
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=error_msg)
-
     return obj
