@@ -1,8 +1,9 @@
 from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.events import EVENT_JOB_EXECUTED, EVENT_JOB_ERROR
+from apscheduler.executors.pool import ThreadPoolExecutor
 from queue import Queue
 from typing import Callable
-from common.settings.config import script_settings
+from common.settings.script_config import script_settings
 from common.utils.logging import logger
 
 
@@ -11,16 +12,25 @@ class JobScheduler:
 
     def __init__(
         self,
-        max_instances: int = 5,
+        max_instances: int = 1,
         cycle_callback: Callable[[],
                                  None] = lambda: None) -> None:
+            
+        self.executors = {
+                'default': ThreadPoolExecutor(max_instances)  # max 2 threads
+            }
+
+        self.job_defaults = {
+                'misfire_grace_time': script_settings.job_interval,
+                'max_instances': max_instances
+            }
         self.current_jobs_count = 0
         self.total_jobs_count = 0
         self.cycle_callback = cycle_callback
         self.scheduler = BlockingScheduler(
-            job_defaults={
-                'misfire_grace_time': script_settings.job_interval,
-                'max_instances': max_instances})
+            job_defaults=self.job_defaults,
+            executors=self.executors
+            )
         self.jobs_queue = Queue()
         self.scheduler.add_listener(
             self._job_event_listener,

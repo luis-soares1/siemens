@@ -1,4 +1,4 @@
-from common.settings.config import script_settings
+from common.settings.script_config import script_settings
 from datetime import datetime
 from common.utils.decorators import retry
 from common.utils.normalizer import normalize_api_resp

@@ -8,12 +8,6 @@ def get_app_env_path():
     ENV_PATH = os.path.join(BASE_DIR, "api", ".env")
     return ENV_PATH
 
-def get_script_env_path():
-    BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-    ENV_PATH = os.path.join(BASE_DIR, "scheduler", ".env")
-    return ENV_PATH
-
-
 class AppSettings(BaseSettings):
     app_name: str
     app_description: str
@@ -34,16 +28,6 @@ class AppSettings(BaseSettings):
     redis_is_db: int
 
     model_config = SettingsConfigDict(env_file=get_app_env_path())
-    
-class ScriptSettings(BaseSettings):
-    host: str
-    port: int
-    weather_api_key: str
-    weather_api_url: str
-    job_interval: int
-    misfire_grace_time: int
-    model_config = SettingsConfigDict(env_file=get_script_env_path())
-
 
 """
 https://fastapi.tiangolo.com/advanced/settings/#__tabbed_6_1
@@ -51,13 +35,8 @@ https://fastapi.tiangolo.com/advanced/settings/#__tabbed_6_1
 
 
 @lru_cache()
-def get_script_settings():
-    return ScriptSettings()
-
-@lru_cache()
 def get_app_settings():
     return AppSettings()
 
 
 app_settings = get_app_settings()
-script_settings = get_script_settings()

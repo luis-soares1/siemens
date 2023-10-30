@@ -3,7 +3,9 @@ LABEL maintainer="github.com/luis-soares1"
 ENV PYTHONUNBUFFERED=1
 
 COPY ./api /app/api
-COPY ./common /app/common
+COPY ./common/scripts /app/common/scripts
+COPY ./common/settings/config.py /app/common/settings/config.py
+COPY ./common/utils /app/common/utils
 
 WORKDIR /app
 EXPOSE 8000

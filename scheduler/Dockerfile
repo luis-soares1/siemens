@@ -3,7 +3,11 @@ LABEL maintainer="github.com/luis-soares1"
 ENV PYTHONUNBUFFERED=1
 
 COPY ./scheduler /app/scheduler
-COPY ./common /app/common
+COPY ./common/scripts /app/common/scripts
+COPY ./common/settings/script_config.py /app/common/settings/script_config.py
+COPY ./common/settings/location_list.csv /app/common/settings/location_list.csv
+COPY ./common/utils /app/common/utils
+
 
 WORKDIR /app
 EXPOSE 8000

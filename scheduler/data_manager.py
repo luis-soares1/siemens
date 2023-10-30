@@ -1,4 +1,4 @@
-from common.settings.config import script_settings
+from common.settings.script_config import script_settings
 from common.utils.logging import logger
 import requests
 
