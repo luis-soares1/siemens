@@ -45,7 +45,7 @@ def normalize_api_resp(data: dict):
     }
 
     current_weather = {
-        'fetch_time': data['timestamp_fetched'],
+        'fetch_time': data['fetch_time'],
         'dt_calculation': data['dt'],
         'location': location_obj,
         'weather_metrics': weather_metrics_obj,

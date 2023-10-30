@@ -1,10 +1,9 @@
-import logging
 from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.events import EVENT_JOB_EXECUTED, EVENT_JOB_ERROR
 from queue import Queue
 from typing import Callable
-from settings.config import settings
-from utils.logging import logger
+from common.settings.config import script_settings
+from common.utils.logging import logger
 
 
 class JobScheduler:
@@ -20,7 +19,7 @@ class JobScheduler:
         self.cycle_callback = cycle_callback
         self.scheduler = BlockingScheduler(
             job_defaults={
-                'misfire_grace_time': settings.job_interval,
+                'misfire_grace_time': script_settings.job_interval,
                 'max_instances': max_instances})
         self.jobs_queue = Queue()
         self.scheduler.add_listener(
@@ -49,20 +48,24 @@ class JobScheduler:
             self.scheduler.add_job(
                 fn,
                 'interval',
-                seconds=settings.job_interval,
+                seconds=script_settings.job_interval,
                 kwargs=kwargs)
 
     def _job_event_listener(self, event) -> None:
         """Listener for job events."""
         self.current_jobs_count += 1
+        
+        if event.exception:
+            logger.error(
+                f"Job {event.job_id} raised an exception: {event.exception}")
+        else:
+            logger.info(f"Job {event.job_id} executed successfully.")
+            
         if self._has_completed_cycle():
-            self.cycle_callback()
+            print("asdasdasd")
             self.current_jobs_count = 0
+            self.cycle_callback()
 
-        # if event.exception:
-        #     logger.error(f"Job {event.job_id} raised an exception: {event.exception}")
-        # else:
-        #     logger.info(f"Job {event.job_id} executed successfully.")
 
     def _has_completed_cycle(self) -> bool:
         """Check if all jobs in the cycle have been executed."""

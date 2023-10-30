@@ -10,6 +10,7 @@ def run():
     path_to_locations_list = os.path.join(
         os.path.dirname(
             os.path.dirname(__file__)),
+        'common',
         'settings',
         'location_list.csv')
     print(path_to_locations_list)

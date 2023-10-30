@@ -1,50 +1,70 @@
-from fastapi import APIRouter, HTTPException, Depends, Query
-from db.query import get_latest_data_query, get_latest_metrics_query
-from db.config import get_db, get_settings
+from fastapi import APIRouter, HTTPException, Depends, Query, status
+from api.db.query import get_latest_data_query, get_latest_metrics_query
+from api.db.config import get_db
+from common.settings.config import app_settings
+from api.db.schemas import CurrentWeatherSchema, ErrorDetails, WeatherMetricsResponse
 from sqlalchemy.orm import Session
 from middleware import cache
 
 router = APIRouter(prefix="/v1")
-settings = get_settings()
 
-
-@router.get("/weather")
-async def get_latest_data(lat: float, lon: float, db: Session = Depends(get_db)):
+@router.get("/weather", responses={
+    200: {'model': CurrentWeatherSchema, 'description': 'Successful Request'},
+    404: {'model': ErrorDetails, 'description': 'Unsuccessful Request'}
+})
+async def get_latest_data(
+    lat: float = Query(ge=-90, le=90, description="Latitude of the location"),
+    lon: float = Query(ge=-180, le=180, description="Longitude of the location"),
+    db: Session =
+    Depends(get_db)
+) -> CurrentWeatherSchema:
     key = f"latest_weather_{lat}_{lon}"
     # weather = await cache.get(key)
     # if not weather:
     weather = get_latest_data_query(lat=lat, lon=lon, db=db)
-    # await cache.put(key, weather, settings.job_interval)
+    # await cache.put(key, weather, app_settings.job_interval)
     if not weather:
+        error_msg = {
+            'status': status.HTTP_404_NOT_FOUND,
+            'msg': "Data not found for given GPS coordinates",
+            'result': "Some error message"
+        }
         raise HTTPException(
-            status_code=404,
-            detail="Data not found for given GPS coordinates")
-    print(weather.location)
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=error_msg)
     return weather
 
 
-def validate_metrics(metrics: list[str]) -> list[str]:
-    if not metrics or len(metrics) == 0:
-        raise HTTPException(status_code=400,
-                            detail="At least one metric must be provided")
-    return metrics
-
-
-@router.get("/weather_metrics")
+@router.get("/weather_metrics",
+            responses={200: {'model': WeatherMetricsResponse,
+                             'description': 'Successful Request'},
+                       404: {'model': ErrorDetails,
+                             'description': 'Unsuccessful Request'}})
 async def get_latest_metrics(
-    lat: float = Query(..., description="Latitude of the location"),
-    lon: float = Query(..., description="Longitude of the location"),
+    lat: float = Query(ge=-90, le=90, description="Latitude of the location"),
+    lon: float = Query(ge=-180, le=180, description="Longitude of the location"),
     metrics: list[str] = Query(..., description="List of metrics to be retrieved", example=["wind", "temp"]),
     db: Session = Depends(get_db)
-):
-    metrics = validate_metrics(metrics)
+) -> WeatherMetricsResponse:
+    
+    if not metrics:
+        raise HTTPException(status_code=400,
+                            detail="At least one metric must be provided")
 
     key = f"latest_weather_metrics_{lat}_{lon}"
     # obj = await cache.get(key)
     # if not obj:
     obj = get_latest_metrics_query(lat=lat, lon=lon, db=db, metrics=metrics)
-    # await cache.put(key, obj, settings.job_interval)
+    print(obj)
+    # await cache.put(key, obj, app_settings.job_interval)
     if "error" in obj:
-        raise HTTPException(status_code=404, detail=obj['error'])
+        error_msg = {
+            'status': status.HTTP_404_NOT_FOUND,
+            'msg': obj['error'],
+            'result': "Some error message"
+        }
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=error_msg)
 
     return obj

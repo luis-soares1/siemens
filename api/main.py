@@ -1,11 +1,10 @@
-# from core.core import Core
 import uvicorn
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from routes.weather import router as weather_router
 from routes.data import router as data_router
 from middleware.cache import create_redis_pool, close_redis_pool
-from settings.config import settings
+from common.settings.config import app_settings
 
 
 @asynccontextmanager
@@ -16,18 +15,18 @@ async def lifespan(app: FastAPI):
     await close_redis_pool()
 
 try:
-    docs_url = None if not settings.debug else "/docs"
-    redoc_url = None if not settings.debug else "/redoc"
-    openapi_url = None if not settings.debug else "/openapi.json"
+    docs_url = None if not app_settings.debug else "/docs"
+    redoc_url = None if not app_settings.debug else "/redoc"
+    openapi_url = None if not app_settings.debug else "/openapi.json"
     app = FastAPI(
-        title=settings.app_name,
-        description=settings.app_description,
+        title=app_settings.app_name,
+        description=app_settings.app_description,
         lifespan=lifespan,
-        debug=settings.debug,
+        debug=app_settings.debug,
         docs_url=docs_url,
         redoc_url=redoc_url)
     app.include_router(weather_router, tags=["weather"])
     app.include_router(data_router, tags=["data"])
-    uvicorn.run(app, host=settings.host, port=settings.port)
+    uvicorn.run(app, host=app_settings.host, port=app_settings.port)
 except Exception as e:
     print('Error launching algorithm', e)

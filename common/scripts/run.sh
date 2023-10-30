@@ -2,6 +2,7 @@
 
 set -e
 
+cd /app/api
 alembic revision --autogenerate -m "First Migration - Setup"
 alembic upgrade head
-uvicorn app.main:app
+python main.py

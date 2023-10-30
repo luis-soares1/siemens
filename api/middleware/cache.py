@@ -1,11 +1,11 @@
-from settings.config import settings
+from common.settings.config import app_settings
 import redis.asyncio as redis
 import pickle as p
 
 
 async def create_redis_pool():
     global redis_pool
-    REDIS_URL = f"redis://{settings.redis_host}:{settings.redis_port}"
+    REDIS_URL = f"redis://{app_settings.cache_host}:{app_settings.redis_port}"
     connection_pool = redis.ConnectionPool().from_url(REDIS_URL)
     redis_pool = redis.Redis.from_pool(connection_pool)
 

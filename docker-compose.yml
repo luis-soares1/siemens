@@ -1,10 +1,12 @@
-version: '3.8'
+version: '3.9'
 
 services:
   web:
-    build: .
+    build:
+      context: .
+      dockerfile: api/Dockerfile
     env_file:
-      - prod.env
+      - api/.env
     restart: always
     ports:
       - 8000:8000
@@ -13,7 +15,15 @@ services:
     depends_on:
       - db
       - redis
-
+  script:
+    build:
+      context: .
+      dockerfile: scheduler/Dockerfile
+    depends_on:
+      - web
+    restart: always
+    env_file:
+      - scheduler/.env
   db:
     image: postgres:16
     env_file:
@@ -21,7 +31,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: always
-
+    
   redis:
     image: redis:6.2
     env_file:

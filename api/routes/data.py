@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, Body, BackgroundTasks
-from api.db.config import get_db, get_settings
+from api.db.config import get_db
 from sqlalchemy.orm import Session
 from typing import Any
 from api.db.crud import create_current_weather

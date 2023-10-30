@@ -1,5 +1,5 @@
-from settings.config import settings
-from utils.logging import logger
+from common.settings.config import script_settings
+from common.utils.logging import logger
 import requests
 
 
@@ -12,7 +12,8 @@ class DataManager:
 
     def send_batch_data(self) -> None:
         response = ""
-        url = f"http://{settings.host}:{settings.port}/receive_data/weather"
+        url = f"http://{script_settings.host}:{script_settings.port}/receive_data/weather"
+        print(len(self.batch_data), 'TAMANHO DO BATCH')
         with requests.Session() as s:
             response = s.post(url, json=self.batch_data)
         self.batch_data = []

@@ -1,18 +1,18 @@
-from settings.config import settings
+from common.settings.config import script_settings
 from datetime import datetime
-from utils.decorators import retry
-from utils.normalizer import normalize_api_resp
+from common.utils.decorators import retry
+from common.utils.normalizer import normalize_api_resp
 import requests
 from data_manager import data_manager
 
 
 @retry(max_retries=3, retry_delay=5)
 def fetch_and_populate(lat: float, lon: float) -> dict:
-    url = f"{settings.weather_api_url}/weather"
+    url = f"{script_settings.weather_api_url}/weather"
     params = {
         "lat": lat,
         "lon": lon,
-        "appid": settings.weather_api_key,
+        "appid": script_settings.weather_api_key,
         "units": "metric"
     }
 
@@ -20,5 +20,5 @@ def fetch_and_populate(lat: float, lon: float) -> dict:
         response = r.get(url, params=params)
         response.raise_for_status()
         data = response.json()
-        data['timestamp_fetched'] = str(datetime.now())
+        data['fetch_time'] = str(datetime.now())
         data_manager.add_to_batch(normalize_api_resp(data))

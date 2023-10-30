@@ -1,14 +1,13 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
-from settings.config import get_settings
-
-settings = get_settings()
+from common.settings.config import app_settings
 
 
 def generate_db_url():
-    # url = f"postgresql://{settings.postgres_user}:{settings.postgres_password}@{settings.postgres_host}:{settings.postgres_port}/{settings.postgres_db}"
-    return "sqlite:///./test.db"
+    url = f"postgresql://{app_settings.postgres_user}:{app_settings.postgres_password}@{app_settings.db_host}:{app_settings.postgres_port}/{app_settings.postgres_db}"
+    # url = "sqlite:///fastapi.db"
+    return url
     # print(url, 'URL')
     # return url
 
