@@ -1,10 +1,11 @@
 from fastapi import APIRouter, HTTPException, Depends, Query, status
+from typing import Annotated, List
 from api.db.query import get_latest_data_query, get_latest_metrics_query
 from api.db.config import get_db
-from common.settings.config import app_settings
-from api.db.schemas import CurrentWeatherSchema, ErrorDetails, WeatherMetricsResponse
+from common.utils.exceptions import NoDataException
+from api.db.schemas import CurrentWeatherSchema, ErrorDetails, WeatherMetricsResponse, WeatherMetric
 from sqlalchemy.orm import Session
-from middleware import cache
+from middleware.cache import cache
 
 router = APIRouter(prefix="/v1")
 
@@ -13,60 +14,51 @@ router = APIRouter(prefix="/v1")
     404: {'model': ErrorDetails, 'description': 'Unsuccessful Request'}
 })
 async def get_latest_data(
-    lat: float = Query(ge=-90, le=90, description="Latitude of the location"),
-    lon: float = Query(ge=-180, le=180, description="Longitude of the location"),
+    lat: Annotated[float, Query(ge=-90, le=90, description="Latitude of the location")],
+    lon: Annotated[float, Query(ge=-180, le=180, description="Longitude of the location")],
     db: Session =
     Depends(get_db)
 ) -> CurrentWeatherSchema:
-    key = f"latest_weather_{lat}_{lon}"
-    weather = await cache.get(key)
-    if not weather:
-        weather = get_latest_data_query(lat=lat, lon=lon, db=db)
-        await cache.put(key, weather, ttl=5*60)
-        if not weather:
-            error_msg = {
-                'status': status.HTTP_404_NOT_FOUND,
-                'msg': "Data not found for given GPS coordinates",
-                'result': "Some error message"
-            }
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=error_msg)
-    return weather
-
-
-@router.get("/weather_metrics",
-            responses={200: {'model': WeatherMetricsResponse,
-                             'description': 'Successful Request'},
-                       404: {'model': ErrorDetails,
-                             'description': 'Unsuccessful Request'}})
-async def get_latest_metrics(
-    lat: float = Query(ge=-90, le=90, description="Latitude of the location"),
-    lon: float = Query(ge=-180, le=180, description="Longitude of the location"),
-    metrics: list[str] = Query(..., description="List of metrics to be retrieved", example=["wind", "temp"]),
-    db: Session = Depends(get_db)
-) -> WeatherMetricsResponse:
     
-    if not metrics:
-        raise HTTPException(status_code=400,
-                            detail="At least one metric must be provided")
+    try:
+        key = f"latest_weather_{lat}_{lon}"
+        weather = await cache.get(key)
+        if not weather:
+            weather = await get_latest_data_query(lat=lat, lon=lon, db=db)
+            if not weather:
+                raise NoDataException()
+        return weather
+    finally:
+        await cache.put(key, weather, ttl=5*60)
 
-    key = f"latest_weather_metrics_{lat}_{lon}"
-    obj = await cache.get(key)
-    print(obj, 'from cache')
-    if not obj:
-        obj = get_latest_metrics_query(lat=lat, lon=lon, db=db, metrics=metrics)
-        if "error" in obj:
-            error_msg = {
-                'status': status.HTTP_404_NOT_FOUND,
-                'msg': obj['error'],
-                'result': "Some error message"
-            }
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=error_msg)
-        # If user inputs wrong metrics, the coordinates will be cached
-        # still
-        await cache.put(key, obj, ttl=5*60)
-    print(obj)
-    return obj
+
+# responses={200: {'model': WeatherMetricsResponse,
+#                              'description': 'Successful Request'},
+#                        404: {'model': ErrorDetails,
+#                              'description': 'Unsuccessful Request'}})
+
+# @router.get("/weather_metrics")
+# async def get_latest_metrics(
+#     lat: float = Query(ge=-90, le=90, description="Latitude of the location"),
+#     lon: float = Query(ge=-180, le=180, description="Longitude of the location"),
+#     metrics: Optional[list[WeatherMetric]] = Query(None, description="List of metrics to be retrieved", example=[WeatherMetric.temp, WeatherMetric.wind]),
+#     db: Session = Depends(get_db)
+# ) -> WeatherMetricsResponse:
+@router.get("/weather_metrics")
+async def get_latest_metrics(
+    lat: Annotated[float, Query(ge=-90, le=90, description="Latitude of the location")],
+    lon: Annotated[float, Query(ge=-180, le=180, description="Longitude of the location")],
+    metrics: List[WeatherMetric] = Query(default=None, description="A set of metrics to query"),
+    db: Session = Depends(get_db)
+):
+    
+    key = f"latest_weather_metrics_{lat}_{lon}_{'_'.join(metrics) if metrics else ''}"
+    try:
+        weather_metrics = await cache.get(key)
+        if not weather_metrics:
+            weather_metrics = await get_latest_metrics_query(lat=lat, lon=lon, db=db, metrics=metrics)
+            if not weather_metrics:
+                raise NoDataException()
+        return weather_metrics
+    finally:
+        await cache.put(key, weather_metrics, ttl=5*60)

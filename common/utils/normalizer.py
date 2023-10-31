@@ -1,6 +1,3 @@
-import json
-
-
 def normalize_api_resp(data: dict):
     location_obj = {
         'cityname': data['name'],

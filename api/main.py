@@ -1,18 +1,18 @@
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from contextlib import asynccontextmanager
 from routes.weather import router as weather_router
 from routes.data import router as data_router
-from middleware.cache import create_redis_pool, close_redis_pool
+from middleware.cache import cache
 from common.settings.config import app_settings
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Cache lifecycle
-    await create_redis_pool()
+    await cache.create_redis_pool()
     yield
-    await close_redis_pool()
+    await cache.close_redis_pool()
 
 try:
     docs_url = None if not app_settings.debug else "/docs"

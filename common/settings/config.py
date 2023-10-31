@@ -4,9 +4,13 @@ import os
 
 
 def get_app_env_path():
-    BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    BASE_DIR = os.path.dirname(
+        os.path.dirname(
+            os.path.dirname(
+                os.path.abspath(__file__))))
     ENV_PATH = os.path.join(BASE_DIR, "api", ".env")
     return ENV_PATH
+
 
 class AppSettings(BaseSettings):
     app_name: str
@@ -28,6 +32,7 @@ class AppSettings(BaseSettings):
     redis_is_db: int
 
     model_config = SettingsConfigDict(env_file=get_app_env_path())
+
 
 """
 https://fastapi.tiangolo.com/advanced/settings/#__tabbed_6_1

@@ -2,6 +2,7 @@ from typing import List, Optional, Union, Annotated
 from pydantic import BaseModel, Field
 from datetime import datetime
 from fastapi import Body
+from enum import Enum
 
 # Individual Components
 
@@ -104,3 +105,18 @@ class ErrorResponse(BaseModel):
 
 class ErrorDetails(BaseModel):
     detail: ErrorResponse
+
+
+class WeatherMetric(str, Enum):
+    temp = "temp"
+    feels_like = "feels_like"
+    pressure = "pressure"
+    visibility = "visibility"
+    cloudiness = "cloudiness"
+    wind_id = "wind_id"
+    humidity = "humidity"
+    temp_min = "temp_min"
+    temp_max = "temp_max"
+    sea_level = "sea_level"
+    grnd_level = "grnd_level"
+    wind = "wind"

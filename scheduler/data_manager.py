@@ -4,6 +4,8 @@ import requests
 
 
 class DataManager:
+    """Manages data pipeline"""
+
     def __init__(self):
         self.batch_data = []
 
