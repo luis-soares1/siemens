@@ -9,14 +9,16 @@ from middleware.cache import cache
 
 router = APIRouter(prefix="/v1")
 
-@router.get("/weather", response_model=CurrentWeatherSchema, response_model_exclude_none=True)
+
+@router.get("/weather", response_model=CurrentWeatherSchema,
+            response_model_exclude_none=True)
 async def get_latest_data(
     lat: Annotated[float, Query(ge=-90, le=90, description="Latitude of the location")],
     lon: Annotated[float, Query(ge=-180, le=180, description="Longitude of the location")],
     db: Session =
     Depends(get_db)
 ) -> CurrentWeatherSchema:
-    
+
     try:
         key = f"latest_weather_{lat}_{lon}"
         weather = await cache.get(key)
@@ -26,16 +28,19 @@ async def get_latest_data(
                 raise NoDataException()
         return weather
     finally:
-        await cache.put(key, weather, ttl=5*60)
+        await cache.put(key, weather, ttl=5 * 60)
 
-@router.get("/weather_metrics", response_model=WeatherMetricsResponse, response_model_exclude_none=True)
+
+@router.get("/weather_metrics",
+            response_model=WeatherMetricsResponse,
+            response_model_exclude_none=True)
 async def get_latest_metrics(
     lat: Annotated[float, Query(ge=-90, le=90, description="Latitude of the location")],
     lon: Annotated[float, Query(ge=-180, le=180, description="Longitude of the location")],
     metrics: List[WeatherMetric] = Query(default=None, description="A set of metrics to query"),
     db: Session = Depends(get_db)
-)-> WeatherMetricsResponse:
-    
+) -> WeatherMetricsResponse:
+
     key = f"latest_weather_metrics_{lat}_{lon}_{'_'.join(metrics) if metrics else ''}"
     try:
         weather_metrics = await cache.get(key)
@@ -45,4 +50,4 @@ async def get_latest_metrics(
                 raise NoDataException()
         return weather_metrics
     finally:
-        await cache.put(key, weather_metrics, ttl=5*60)
+        await cache.put(key, weather_metrics, ttl=5 * 60)

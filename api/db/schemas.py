@@ -48,16 +48,25 @@ class VolumesSchema(BaseModel):
 class WeatherMetricsResponse(BaseModel):
     temp: Annotated[float | None, Body(description="Current temp")] = Field(
         default=None, description="Time when the weather data was fetched.")
-    feels_like: Annotated[float | None, Body(description="Feels like temp")] = None
-    pressure: Annotated[float | None, Body(description="Feels like temp")] = None
-    visibility: Annotated[int | None, Body(description="Feels like temp")] = None
-    cloudiness: Annotated[int | None, Body(description="Feels like temp")] = None
+    feels_like: Annotated[float | None, Body(
+        description="Feels like temp")] = None
+    pressure: Annotated[float | None, Body(
+        description="Feels like temp")] = None
+    visibility: Annotated[int | None, Body(
+        description="Feels like temp")] = None
+    cloudiness: Annotated[int | None, Body(
+        description="Feels like temp")] = None
     humidity: Annotated[int | None, Body(description="Feels like temp")] = None
-    temp_min: Annotated[float | None, Body(description="Feels like temp")] = None
-    temp_max: Annotated[float | None, Body(description="Feels like temp")] = None
-    sea_level: Annotated[float | None, Body(description="Feels like temp")] = None
-    grnd_level: Annotated[float | None, Body(description="Feels like temp")] = None
-    wind: Annotated[WindSchema | None, Body(description="Feels like temp")] = None
+    temp_min: Annotated[float | None, Body(
+        description="Feels like temp")] = None
+    temp_max: Annotated[float | None, Body(
+        description="Feels like temp")] = None
+    sea_level: Annotated[float | None, Body(
+        description="Feels like temp")] = None
+    grnd_level: Annotated[float | None, Body(
+        description="Feels like temp")] = None
+    wind: Annotated[WindSchema | None, Body(
+        description="Feels like temp")] = None
     fetch_time: Annotated[datetime | None, Body()] = Field(
         default=None, description="Time when the weather data was fetched.")
 
@@ -101,6 +110,7 @@ class CurrentWeatherSchema(BaseModel):
 class Request(BaseModel):
     parameter: Optional[BaseModel] = Field(
         None, description="Request parameter.")
+
 
 class ErrorResponse(BaseModel):
     status: str = Field(..., description="Response status.")

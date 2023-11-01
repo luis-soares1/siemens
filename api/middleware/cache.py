@@ -33,4 +33,5 @@ class Cache:
     async def clear_all_cache(self):
         await self.redis_pool.flushall()
 
+
 cache = Cache()
