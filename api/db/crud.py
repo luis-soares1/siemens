@@ -18,8 +18,6 @@ from db.schemas import (
 from datetime import datetime
 
 # CRUD operations for Location
-
-
 def create_location(db: Session, location: LocationSchema):
     existing_location = db.query(Location).filter_by(
         longitude=location['longitude'],
@@ -115,12 +113,11 @@ def create_volumes(db: Session, volume: VolumesSchema):
     return _volume
 
 # CRUD operations for CurrentWeather
-
-
 def create_current_weather(db: Session, current_weather: CurrentWeatherSchema):
+    current_weather = current_weather.model_dump()
     loc = create_location(db, current_weather.pop('location'))
     metrics = create_weather_metrics(
-        db, current_weather.pop('weather_metrics'))
+        db, current_weather.pop('metrics'))
     vols = create_volumes(db, current_weather.pop('volume'))
     weathers = []
     for weather in current_weather.pop('weathers'):
@@ -131,9 +128,7 @@ def create_current_weather(db: Session, current_weather: CurrentWeatherSchema):
         weather_metrics_id=metrics.id,
         volume_id=vols.id,
         weathers=weathers,
-        fetch_time=datetime.strptime(
-            current_weather['fetch_time'].strip('"'),
-            "%Y-%m-%d %H:%M:%S.%f"),
+        fetch_time=current_weather['fetch_time'],
         dt_calculation=current_weather['dt_calculation'])
 
     db.add(_current_weather)

@@ -45,7 +45,7 @@ def normalize_api_resp(data: dict):
         'fetch_time': data['fetch_time'],
         'dt_calculation': data['dt'],
         'location': location_obj,
-        'weather_metrics': weather_metrics_obj,
+        'metrics': weather_metrics_obj,
         'volume': volume_obj,
         'weathers': []
     }
@@ -60,9 +60,4 @@ def normalize_api_resp(data: dict):
         }
         weather_objects.append(weather_obj)
     current_weather['weathers'] = weather_objects
-    return {
-        'location': location_obj,
-        'volume': volume_obj,
-        'wind': wind_obj,
-        'weather_metrics': weather_metrics_obj,
-        'current_weather': current_weather}
+    return current_weather

@@ -48,27 +48,18 @@ class VolumesSchema(BaseModel):
 class WeatherMetricsResponse(BaseModel):
     temp: Annotated[float | None, Body(description="Current temp")] = Field(
         default=None, description="Time when the weather data was fetched.")
-    feels_like: Annotated[float | None, Body(
-        description="Feels like temp")] = None
-    pressure: Annotated[float | None, Body(
-        description="Feels like temp")] = None
-    visibility: Annotated[int | None, Body(
-        description="Feels like temp")] = None
-    cloudiness: Annotated[int | None, Body(
-        description="Feels like temp")] = None
-    humidity: Annotated[int | None, Body(description="Feels like temp")] = None
-    temp_min: Annotated[float | None, Body(
-        description="Feels like temp")] = None
-    temp_max: Annotated[float | None, Body(
-        description="Feels like temp")] = None
-    sea_level: Annotated[float | None, Body(
-        description="Feels like temp")] = None
-    grnd_level: Annotated[float | None, Body(
-        description="Feels like temp")] = None
-    wind: Annotated[WindSchema | None, Body(
-        description="Feels like temp")] = None
+    feels_like: Annotated[float | None, Body()] = None
+    pressure: Annotated[float | None, Body()] = None
+    visibility: Annotated[int | None, Body()] = None
+    cloudiness: Annotated[int | None, Body()] = None
+    humidity: Annotated[int | None, Body()] = None
+    temp_min: Annotated[float | None, Body()] = None
+    temp_max: Annotated[float | None, Body()] = None
+    sea_level: Annotated[float | None, Body()] = None
+    grnd_level: Annotated[float | None, Body()] = None
+    wind: Annotated[WindSchema | None, Body()] = None
     fetch_time: Annotated[datetime | None, Body()] = Field(
-        default=None, description="Time when the weather data was fetched.")
+        default=None)
 
 
 class WeatherMetricsSchema(BaseModel):
@@ -90,6 +81,7 @@ class WeatherMetricsSchema(BaseModel):
 
 
 class WeatherSchema(BaseModel):
+    id: int = Field(..., description="Unique ID to query by.")
     main: str = Field(..., description="Main weather condition.")
     description: str = Field(..., description="Detailed weather condition.")
     icon: str = Field(..., description="Weather icon code.")

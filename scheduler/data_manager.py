@@ -16,12 +16,13 @@ class DataManager:
         response = ""
         url = f"http://{script_settings.host}:{script_settings.port}/receive_data/weather"
         print('Batch size: ', len(self.batch_data))
+        print(self.batch_data)
         with requests.Session() as s:
             response = s.post(url, json=self.batch_data)
         self.batch_data = []
 
         logger.info(
-            f"Data has been sent. Got the following response back: {response}")
+            f"Data has been sent. Got the following response back: {response.text}")
 
 
 data_manager = DataManager()
