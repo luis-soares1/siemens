@@ -1,7 +1,6 @@
 from db.models import CurrentWeather, Location
 from sqlalchemy.orm import Session
 from typing import List, Union, Dict
-from common.utils.utils import METRIC_EXTRACTION_MAP
 
 
 async def get_latest_data_query(

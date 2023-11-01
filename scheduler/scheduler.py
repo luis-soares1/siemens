@@ -72,7 +72,6 @@ class JobScheduler:
             logger.info(f"Job {event.job_id} executed successfully.")
 
         if self._has_completed_cycle():
-            print("asdasdasd")
             self.current_jobs_count = 0
             self.cycle_callback()
 

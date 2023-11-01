@@ -18,8 +18,6 @@ from db.schemas import (
 from datetime import datetime
 
 # CRUD operations for Location
-
-
 def create_location(db: Session, location: LocationSchema):
     existing_location = db.query(Location).filter_by(
         longitude=location['longitude'],
@@ -67,9 +65,7 @@ def create_weather(db: Session, weather: WeatherSchema):
 
 
 def create_weather_metrics(db: Session, weather_metrics: WeatherMetricsSchema):
-    # existing_weather_metrics = db.query(WeatherMetrics).filter_by(main=weather_metrics['main']).first()
-    # if False:
-    #     return existing_weather_metrics
+    # No query bcuz very unlikely similiar obj. Trade-off not worth it
     wind = weather_metrics.pop('wind')
     _wind = create_wind(db, wind)
     _weather_metrics = WeatherMetrics(**weather_metrics)
@@ -117,12 +113,6 @@ def create_volumes(db: Session, volume: VolumesSchema):
     return _volume
 
 # CRUD operations for CurrentWeather
-
-
-def get_current_weather(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(CurrentWeather).offset(skip).limit(limit).all()
-
-
 def create_current_weather(db: Session, current_weather: CurrentWeatherSchema):
     loc = create_location(db, current_weather.pop('location'))
     metrics = create_weather_metrics(

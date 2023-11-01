@@ -9,10 +9,7 @@ from middleware.cache import cache
 
 router = APIRouter(prefix="/v1")
 
-@router.get("/weather", responses={
-    200: {'model': CurrentWeatherSchema, 'description': 'Successful Request'},
-    404: {'model': ErrorDetails, 'description': 'Unsuccessful Request'}
-})
+@router.get("/weather", response_model=CurrentWeatherSchema, response_model_exclude_none=True)
 async def get_latest_data(
     lat: Annotated[float, Query(ge=-90, le=90, description="Latitude of the location")],
     lon: Annotated[float, Query(ge=-180, le=180, description="Longitude of the location")],
@@ -31,26 +28,13 @@ async def get_latest_data(
     finally:
         await cache.put(key, weather, ttl=5*60)
 
-
-# responses={200: {'model': WeatherMetricsResponse,
-#                              'description': 'Successful Request'},
-#                        404: {'model': ErrorDetails,
-#                              'description': 'Unsuccessful Request'}})
-
-# @router.get("/weather_metrics")
-# async def get_latest_metrics(
-#     lat: float = Query(ge=-90, le=90, description="Latitude of the location"),
-#     lon: float = Query(ge=-180, le=180, description="Longitude of the location"),
-#     metrics: Optional[list[WeatherMetric]] = Query(None, description="List of metrics to be retrieved", example=[WeatherMetric.temp, WeatherMetric.wind]),
-#     db: Session = Depends(get_db)
-# ) -> WeatherMetricsResponse:
-@router.get("/weather_metrics")
+@router.get("/weather_metrics", response_model=WeatherMetricsResponse, response_model_exclude_none=True)
 async def get_latest_metrics(
     lat: Annotated[float, Query(ge=-90, le=90, description="Latitude of the location")],
     lon: Annotated[float, Query(ge=-180, le=180, description="Longitude of the location")],
     metrics: List[WeatherMetric] = Query(default=None, description="A set of metrics to query"),
     db: Session = Depends(get_db)
-):
+)-> WeatherMetricsResponse:
     
     key = f"latest_weather_metrics_{lat}_{lon}_{'_'.join(metrics) if metrics else ''}"
     try:
