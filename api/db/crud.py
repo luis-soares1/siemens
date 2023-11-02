@@ -61,9 +61,8 @@ def create_weather(db: Session, weather: WeatherSchema):
     db.refresh(_weather)
     return _weather
 
+
 # CRUD operations for WeatherMetrics
-
-
 def create_weather_metrics(db: Session, weather_metrics: WeatherMetricsSchema):
     # No query bcuz very unlikely similiar obj. Trade-off not worth it
     wind = weather_metrics.pop('wind')
