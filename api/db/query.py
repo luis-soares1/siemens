@@ -1,5 +1,6 @@
-from db.models import CurrentWeather, Location
+from db.models import CurrentWeather, Location, WeatherMetrics
 from sqlalchemy.orm import Session
+from sqlalchemy.sql import func
 from typing import List, Union, Dict
 
 
@@ -17,7 +18,37 @@ async def get_latest_data_query(
 
     return weather
 
+async def get_avg_across_locations(db: Session) -> int:
+    location_and_temp_list = (
+        db.query(
+            CurrentWeather.location_id,
+            WeatherMetrics.temp.label('temp')
+        )
+        # get all metrics, sort by date and apply distinct. All next occurrences (older) are removed
+        .join(WeatherMetrics, WeatherMetrics.id == CurrentWeather.weather_metrics_id)
+        .order_by(CurrentWeather.location_id, CurrentWeather.fetch_time.desc())
+        .distinct(CurrentWeather.location_id)
+        .all()
+    )
 
+    return sum([temp for _, temp in location_and_temp_list])/len(location_and_temp_list)
+
+    # OLD APPROACH
+
+    # return average_temp_query
+    # print('called avg')
+    # location_len = len(db.query(Location).all())
+    # recent_data = db.query(CurrentWeather).order_by(CurrentWeather.fetch_time.desc()).limit(location_len).all()
+    
+    # print(recent_data, 'here')
+    # sum = 0
+    # for location in recent_data:
+    #     print(location)
+    #     sum += location.metrics.temp
+    
+    # return sum/location_len
+    
+    
 async def get_latest_metrics_query(
         lat: float,
         lon: float,

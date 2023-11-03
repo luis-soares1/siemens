@@ -1,7 +1,7 @@
 import os
 import csv
 from scheduler import JobScheduler
-from jobs.current_weather import fetch_and_populate
+from jobs.current_weather import fetch_external_api
 from data_manager import data_manager
 
 
@@ -21,7 +21,7 @@ def run():
         for row in reader:
             print(row)
             kwargs = {'lat': row[0], 'lon': row[1]}
-            sched.enqueue_job(fetch_and_populate, kwargs)
+            sched.enqueue_job(fetch_external_api, kwargs)
     sched.run()
 
 

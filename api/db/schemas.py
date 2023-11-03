@@ -4,8 +4,6 @@ from datetime import datetime
 from fastapi import Body
 from enum import Enum
 
-# Individual Components
-
 
 class TimezoneSchema(BaseModel):
     shift_seconds: int = Field(...,

@@ -2,7 +2,7 @@ from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, Tab
 from sqlalchemy.orm import relationship
 from db.config import Base
 
-# Association table for Weather and CurrentWeather
+# current weather might have several weathers -> association table
 weather_association = Table(
     'weather_association', Base.metadata, Column(
         'current_weather_id', Integer, ForeignKey('current_weather.id')), Column(

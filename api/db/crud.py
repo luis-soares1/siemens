@@ -80,7 +80,7 @@ def create_wind(db: Session, wind: WindSchema):
     existing_wind = db.query(Wind).filter_by(
         speed=wind['speed'],
         deg=wind['deg'],
-        # using get in case 'gust' might not always be provided
+        # gust might not be provided, thus i'm using gust
         gust=wind.get('gust', None)
     ).first()
     if existing_wind:
@@ -92,11 +92,7 @@ def create_wind(db: Session, wind: WindSchema):
     return _wind
 
 # CRUD operations for Volumes
-
-
 def create_volumes(db: Session, volume: VolumesSchema):
-    # Adjust your filter conditions based on unique criteria for Volumes if
-    # necessary
     existing_volume = db.query(Volumes).filter_by(
         rain_1h=volume.get(
             'rain_1h', None), rain_3h=volume.get(

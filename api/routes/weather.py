@@ -1,9 +1,9 @@
-from fastapi import APIRouter, HTTPException, Depends, Query, status
+from fastapi import APIRouter, Depends, Query
 from typing import Annotated, List
-from api.db.query import get_latest_data_query, get_latest_metrics_query
+from api.db.query import get_latest_data_query, get_latest_metrics_query, get_avg_across_locations
 from api.db.config import get_db
 from common.utils.exceptions import NoDataException
-from api.db.schemas import CurrentWeatherSchema, ErrorDetails, WeatherMetricsResponse, WeatherMetric
+from api.db.schemas import CurrentWeatherSchema, WeatherMetricsResponse, WeatherMetric
 from sqlalchemy.orm import Session
 from middleware.cache import cache
 
@@ -51,3 +51,14 @@ async def get_latest_metrics(
         return weather_metrics
     finally:
         await cache.put(key, weather_metrics, ttl=5 * 60)
+        
+        
+@router.get("/weather_avg")
+async def get_avg(db: Session = Depends(get_db)):
+    try:
+        data = await get_avg_across_locations(db)
+        print(data)
+        return data
+    except Exception as e:
+        print(e)
+        return(e, "Exception")

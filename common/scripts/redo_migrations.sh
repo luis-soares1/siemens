@@ -15,10 +15,10 @@ rm *.db
 cd alembic/versions
 rm -rf *
 
-# Return to api dir
+# return to api dir
 cd ../..
 
-# Run alembic with dynamic message
+# run alembic with dyn message
 alembic revision --autogenerate -m "$DYNAMIC_MESSAGE"
 alembic upgrade head
 uvicorn main:app --reload

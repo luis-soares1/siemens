@@ -10,8 +10,8 @@ def normalize_api_resp(data: dict):
     }
 
     volume_obj = {
-        # Check existence of keys rain/snow and hours. If exists, return
-        # values, else return None
+        # check existence of keys rain/snow and hours. If exists, return
+        # values, else return None. These are also not mandatory to come in the external api resp.
         'rain_1h': data['rain']['1h'] if data.get('rain', {}).get('1h') else None,
         'rain_3h': data['rain']['3h'] if data.get('rain', {}).get('3h') else None,
         'snow_1h': data['snow']['1h'] if data.get('snow', {}).get('1h') else None,

@@ -7,7 +7,7 @@ from data_manager import data_manager
 
 
 @retry(max_retries=3, retry_delay=5)
-def fetch_and_populate(lat: float, lon: float) -> dict:
+def fetch_external_api(lat: float, lon: float) -> dict:
     url = f"{script_settings.weather_api_url}/weather"
     params = {
         "lat": lat,

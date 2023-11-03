@@ -17,7 +17,7 @@ class JobScheduler:
                                  None] = lambda: None) -> None:
 
         self.executors = {
-            'default': ThreadPoolExecutor(max_instances)  # max 2 threads
+            'default': ThreadPoolExecutor(max_instances)
         }
 
         self.job_defaults = {
